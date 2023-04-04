@@ -1,4 +1,4 @@
-# ml-pipline-obelix
+# obelix-ml-pipeline
 Data and code related to the ML pipeline used in the paper '...' introducing our [OBeLiX workflow](https://github.com/EPiCs-group/obelix).
 
 ## Data
