@@ -17,6 +17,6 @@ setup(
     description='',
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    package_data={'obelix_ml_pipeline': ['data/']},
+    package_data={'obelix_ml_pipeline': ['data']},
     long_description=open('README.md').read(),
 )

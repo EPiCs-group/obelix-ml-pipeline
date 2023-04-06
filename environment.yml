@@ -10,6 +10,7 @@ dependencies:
 - pandas==1.4.3
 - numpy==1.23.2
 - morfeus-ml==0.7.1
+- rdkit==2022.09.1
 - openpyxl
 - scikit-learn
 - scipy
