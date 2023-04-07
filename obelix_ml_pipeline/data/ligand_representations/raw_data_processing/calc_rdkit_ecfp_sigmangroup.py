@@ -4,6 +4,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors
 from morfeus import Sterimol, read_xyz
 from rdkit import RDLogger
+import numpy as np
 RDLogger.DisableLog('rdApp.*')
 
 def calc_fps_descr(smiles_list, name_list):
