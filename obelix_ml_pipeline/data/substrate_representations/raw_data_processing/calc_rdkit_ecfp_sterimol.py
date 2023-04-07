@@ -3,6 +3,7 @@ import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors
 from morfeus import Sterimol, read_xyz
+import numpy as np
 
 def calc_sterimol_descr(name_list):
     """Calculate sterimol parameters from xyz files
