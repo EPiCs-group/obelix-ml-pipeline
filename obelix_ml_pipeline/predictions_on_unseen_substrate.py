@@ -10,8 +10,8 @@ from obelix_ml_pipeline.machine_learning import prepare_classification_df, train
 
 
 def predict_out_of_sample_substrate_classification(selected_ligand_representations, selected_substrate_representations,
-                                    ligand_numbers_column, substrate_names_column, target, target_threshold, binary,
-                                    list_of_training_substrates, list_of_test_substrates, test_size, print_ml_results):
+                                    ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
+                                    list_of_training_substrates, list_of_test_substrates, test_size, print_ml_results, n_jobs):
     ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
                        selected_ligand_representations]
     # flatten list of lists
@@ -28,26 +28,41 @@ def predict_out_of_sample_substrate_classification(selected_ligand_representatio
                                                                   selected_substrate_representations)
     # for the classification dataframe we want the ligand number, substrate name, target and ligand/substrate features
     classification_df = df[[ligand_numbers_column, substrate_names_column, target] + features]
-    classification_df = prepare_classification_df(classification_df, target, target_threshold, binary=True)
+    classification_df = prepare_classification_df(classification_df, target, target_threshold, binary)
     train_data_classification = classification_df[
         classification_df[substrate_names_column].isin(list_of_training_substrates)]
-    # trained model on training set and figures
-    # in this split we have results on the training part of the split and the test part
-    trained_model, fig_confusion, fig_feature_importance, train_balanced_accuracy_test, train_balanced_accuracy_train, train_cm_test, \
-        train_cm_train = train_classifier(train_data_classification, ligand_numbers_column, substrate_names_column,
+    best_model, training_train_scores_mean, training_train_scores_std, training_test_scores_mean, training_test_scores_std, avg_training_train_confusion_matrix, avg_training_test_confusion_matrix, fig_cm, fig_fi = train_classifier(train_data_classification, ligand_numbers_column, substrate_names_column,
                                           target,
-                                          test_size=test_size, cv=5, scoring='balanced_accuracy', n_jobs=1,
+                                          test_size=test_size, cv=train_splits, scoring='balanced_accuracy', n_jobs=n_jobs,
                                           print_results=print_ml_results)
-    # test model on test set
-    test_data_classification = classification_df[
-        classification_df[substrate_names_column].isin(list_of_test_substrates)]
-    fig_confusion_test, test_balanced_accuracy_test, test_cm_test = predict_classifier(test_data_classification,
+
+    # # test model on test set
+    test_data_classification = classification_df[classification_df[substrate_names_column].isin(list_of_test_substrates)]
+    testing_confusion_fig, testing_balanced_accuracy_test, testing_cm_test = predict_classifier(test_data_classification,
                                                                                        ligand_numbers_column,
                                                                                        substrate_names_column, target,
-                                                                                       trained_model,
+                                                                                       best_model,
                                                                                        print_results=print_ml_results)
-    return trained_model, fig_confusion, fig_feature_importance, fig_confusion_test, train_balanced_accuracy_test, train_balanced_accuracy_train, train_cm_test, \
-        train_cm_train, test_balanced_accuracy_test, test_cm_test
+    return best_model, training_train_scores_mean, training_train_scores_std, training_test_scores_mean, training_test_scores_std, avg_training_train_confusion_matrix, avg_training_test_confusion_matrix, fig_cm, fig_fi, testing_confusion_fig, testing_balanced_accuracy_test, testing_cm_test
+
+    # old functions, uncomment if you use v1 or v2 of train_classifier
+    # # trained model on training set and figures
+    # # in this split we have results on the training part of the split and the test part
+    # trained_model, fig_confusion, fig_feature_importance, train_balanced_accuracy_test, train_balanced_accuracy_train, train_cm_test, \
+    #     train_cm_train = train_classifier(train_data_classification, ligand_numbers_column, substrate_names_column,
+    #                                       target,
+    #                                       test_size=test_size, cv=train_splits, scoring='balanced_accuracy', n_jobs=4,
+    #                                       print_results=print_ml_results)
+    # # test model on test set
+    # test_data_classification = classification_df[
+    #     classification_df[substrate_names_column].isin(list_of_test_substrates)]
+    # fig_confusion_test, test_balanced_accuracy_test, test_cm_test = predict_classifier(test_data_classification,
+    #                                                                                    ligand_numbers_column,
+    #                                                                                    substrate_names_column, target,
+    #                                                                                    trained_model,
+    #                                                                                    print_results=print_ml_results)
+    # return trained_model, fig_confusion, fig_feature_importance, fig_confusion_test, train_balanced_accuracy_test, train_balanced_accuracy_train, train_cm_test, \
+    #     train_cm_train, test_balanced_accuracy_test, test_cm_test
 
 
 if __name__ == "__main__":
@@ -57,14 +72,31 @@ if __name__ == "__main__":
     target = 'Conversion'
     target_threshold = 0.8
     test_size = 0.2
+    train_splits = 5
+    n_jobs = 4
+    binary = True
     plot_dendrograms = False
     substrate_names_column = 'Substrate'
     ligand_numbers_column = 'Ligand#'
     list_of_training_substrates = ['SM1', 'SM2']
     list_of_test_substrates = ['SM3']
     print_ml_results = True
+    best_model, training_train_scores_mean, training_train_scores_std, training_test_scores_mean, training_test_scores_std, avg_training_train_confusion_matrix, avg_training_test_confusion_matrix, fig_cm, fig_fi, testing_confusion_fig, testing_balanced_accuracy_test, testing_cm_test = predict_out_of_sample_substrate_classification(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary=binary, list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates, test_size=test_size, print_ml_results=print_ml_results, n_jobs=n_jobs)
+    fig_cm.show()
+    fig_fi.show()
+    testing_confusion_fig.show()
 
-    trained_model, fig_confusion, fig_feature_importance, fig_confusion_test, train_balanced_accuracy_test, train_balanced_accuracy_train, train_cm_test, \
-        train_cm_train, test_balanced_accuracy_test, test_cm_test = predict_out_of_sample_substrate_classification(selected_ligand_representations, selected_substrate_representations,
-                                                                                                    ligand_numbers_column, substrate_names_column, target, target_threshold, binary=True,
-                                                                                                    list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates, test_size=test_size, print_ml_results=print_ml_results)
+
+    # # old functions, uncomment if you use v1 or v2 of train_classifier
+    # trained_model, fig_confusion, fig_feature_importance, fig_confusion_test, train_balanced_accuracy_test, train_balanced_accuracy_train, train_cm_test, \
+    #     train_cm_train, test_balanced_accuracy_test, test_cm_test = predict_out_of_sample_substrate_classification(selected_ligand_representations, selected_substrate_representations,
+    #                                                                                                 ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary=binary,
+    #                                                                                                 list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates, test_size=test_size, print_ml_results=print_ml_results)
+    # print('train_balanced_accuracy_train: ', train_balanced_accuracy_train)
+    # print('train_cm_train: ', train_cm_train)
+    #
+    # print('train_balanced_accuracy_test: ', train_balanced_accuracy_test)
+    # print('train_cm_test: ', train_cm_test)
+    #
+    # print('test_balanced_accuracy_test: ', test_balanced_accuracy_test)
+    # print('test_cm_test: ', test_cm_test)
