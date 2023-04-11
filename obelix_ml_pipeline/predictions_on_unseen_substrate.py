@@ -5,13 +5,15 @@
 #  __contact__ = a.v.kalikadien@tudelft.nl            #
 
 # objective 1: For a complete new substrate, the model gives the performance of 192 ligands with an accuracy as high as possible
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+
 from obelix_ml_pipeline.load_representations import select_features_for_representation, load_and_merge_representations_and_experimental_response
-from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_classifier, predict_classifier
+from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model
 
 
-def predict_out_of_sample_substrate_classification(selected_ligand_representations, selected_substrate_representations,
+def predict_out_of_sample_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, list_of_test_substrates, test_size, print_ml_results, n_jobs):
+                                    list_of_training_substrates, list_of_test_substrates, rf_model, scoring, print_ml_results, n_jobs):
     ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
                        selected_ligand_representations]
     # flatten list of lists
@@ -22,28 +24,28 @@ def predict_out_of_sample_substrate_classification(selected_ligand_representatio
     substrate_features = [item for sublist in substrate_features for item in sublist]
     # print(substrate_features)
     features = ligand_features + substrate_features
-    #
+
     # load selected representations and experimental response
     df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
                                                                   selected_substrate_representations)
     # for the classification dataframe we want the ligand number, substrate name, target and ligand/substrate features
-    classification_df = df[[ligand_numbers_column, substrate_names_column, target] + features]
-    classification_df = prepare_classification_df(classification_df, target, target_threshold, binary)
-    train_data_classification = classification_df[
-        classification_df[substrate_names_column].isin(list_of_training_substrates)]
-    best_model, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_classifier(train_data_classification, ligand_numbers_column, substrate_names_column,
-                                          target,
-                                          test_size=test_size, cv=train_splits, scoring='balanced_accuracy', n_jobs=n_jobs,
-                                          print_results=print_ml_results)
+    df = df[[ligand_numbers_column, substrate_names_column, target] + features]
+    if 'accuracy' in scoring:  # this means that we are doing a classification task
+        df = prepare_classification_df(df, target, target_threshold, binary)
+    train_data = df[df[substrate_names_column].isin(list_of_training_substrates)]
+    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
+        train_data, ligand_numbers_column, substrate_names_column,
+        target,
+        rf_model=rf_model, cv=train_splits, scoring=scoring, n_jobs=n_jobs,
+        print_results=print_ml_results)
 
     # # test model on test set
-    test_data_classification = classification_df[classification_df[substrate_names_column].isin(list_of_test_substrates)]
-    testing_confusion_fig, testing_balanced_accuracy_test, testing_cm_test = predict_classifier(test_data_classification,
-                                                                                       ligand_numbers_column,
-                                                                                       substrate_names_column, target,
-                                                                                       best_model,
-                                                                                       print_results=print_ml_results)
-    return best_model, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_confusion_fig, testing_balanced_accuracy_test, testing_cm_test
+    test_data = df[df[substrate_names_column].isin(list_of_test_substrates)]
+    testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data, ligand_numbers_column,
+                                                                                        substrate_names_column, target,
+                                                                                        best_model, scoring=scoring,
+                                                                                        print_results=print_ml_results)
+    return best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test
 
 
 if __name__ == "__main__":
@@ -52,7 +54,8 @@ if __name__ == "__main__":
     selected_substrate_representations = ['ecfp']
     target = 'Conversion'
     target_threshold = 0.8
-    test_size = 0.2
+    rf_model = RandomForestClassifier(random_state=42)
+    scoring = 'balanced_accuracy'
     train_splits = 5
     n_jobs = 4
     binary = True
@@ -62,7 +65,25 @@ if __name__ == "__main__":
     list_of_training_substrates = ['SM1', 'SM2']
     list_of_test_substrates = ['SM3']
     print_ml_results = True
-    best_model, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_confusion_fig, testing_balanced_accuracy_test, testing_cm_test = predict_out_of_sample_substrate_classification(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary=binary, list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates, test_size=test_size, print_ml_results=print_ml_results, n_jobs=n_jobs)
+    print('Training and testing classifier')
+    print(f'Test size in training (based on K-fold): {1/train_splits}')
+    # do the same with general function predict_out_of_sample_substrate
+    best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_balanced_accuracy_test, testing_confusion_fig,  testing_cm_test = predict_out_of_sample_substrate(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary=binary, list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates, rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs)
     fig_cm.show()
-    fig_fi.show()
+    # fig_fi.show()
+    testing_confusion_fig.show()
+
+    # try regression with loaded representations
+    target = 'EE'
+    target_threshold = 0.6
+    rf_model = RandomForestRegressor(random_state=42)
+    scoring = 'r2'
+    binary = False
+    print('Training and testing regression')
+    print(f'Test size: {1/train_splits}')
+    best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_balanced_accuracy_test, testing_confusion_fig, testing_cm_test = predict_out_of_sample_substrate(
+        selected_ligand_representations, selected_substrate_representations, ligand_numbers_column,
+        substrate_names_column, target, target_threshold, train_splits, binary=binary,
+        list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
+        rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs)
     testing_confusion_fig.show()
