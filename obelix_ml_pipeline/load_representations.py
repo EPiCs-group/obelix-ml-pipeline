@@ -19,13 +19,15 @@ def load_and_merge_representations_and_experimental_response(selected_ligand_rep
     # features to select from the ligand representation, these are defined in constants.py per representation type
     selected_features = select_features_for_representation(selected_ligand_representations[0], ligand=True)
     ligand_index_column = 'Ligand#'
-    first_ligand_rep = load_ligand_representations(selected_ligand_representations[0], columns_of_representation_to_select=selected_features.append(ligand_index_column))
+    selected_features_and_ligand_index = selected_features + [ligand_index_column]
+    first_ligand_rep = load_ligand_representations(selected_ligand_representations[0], columns_of_representation_to_select=selected_features_and_ligand_index)
     exp_df = load_experimental_response()
     ligand_rep_and_exp_df = merge_dfs(exp_df, ligand_index_column, first_ligand_rep, ligand_index_column)
     if len(selected_ligand_representations) > 1:
         for selected_ligand_representation in selected_ligand_representations[1:]:
             selected_features = select_features_for_representation(selected_ligand_representation, ligand=True)
-            ligand_rep = load_ligand_representations(selected_ligand_representation, columns_of_representation_to_select=selected_features.append(ligand_index_column))
+            selected_features_and_ligand_index = selected_features + [ligand_index_column]
+            ligand_rep = load_ligand_representations(selected_ligand_representation, columns_of_representation_to_select=selected_features_and_ligand_index)
             # keep merging ligand rep to first ligand rep and exp df
             ligand_rep_and_exp_df = merge_dfs(ligand_rep_and_exp_df, ligand_index_column, ligand_rep, ligand_index_column)
 
@@ -33,7 +35,8 @@ def load_and_merge_representations_and_experimental_response(selected_ligand_rep
     # features to select from the substrate representation, these are defined in constants.py per representation type
     selected_features = select_features_for_representation(selected_substrate_representations[0], ligand=False)
     substrate_index_column_substrate_df = 'index'
-    first_substrate_rep = load_substrate_representations(selected_substrate_representations[0], columns_of_representation_to_select=selected_features.append(substrate_index_column_substrate_df))
+    selected_features_and_substrate_index = selected_features + [substrate_index_column_substrate_df]
+    first_substrate_rep = load_substrate_representations(selected_substrate_representations[0], columns_of_representation_to_select=selected_features_and_substrate_index)
     # check similarity of substrates based on first selected substrate representation
     if plot_dendrograms:
         plot_dendrogram_for_substrate_rep(first_substrate_rep, selected_substrate_representations[0])
@@ -44,7 +47,8 @@ def load_and_merge_representations_and_experimental_response(selected_ligand_rep
     if len(selected_substrate_representations) > 1:
         for selected_substrate_representation in selected_substrate_representations[1:]:
             selected_features = select_features_for_representation(selected_substrate_representation, ligand=False)
-            next_substrate_rep = load_substrate_representations(selected_substrate_representation, columns_of_representation_to_select=selected_features.append(substrate_index_column_substrate_df))
+            selected_features_and_substrate_index = selected_features + [substrate_index_column_substrate_df]
+            next_substrate_rep = load_substrate_representations(selected_substrate_representation, columns_of_representation_to_select=selected_features_and_substrate_index)
             # plot dendrogram for this substrate representation
             if plot_dendrograms:
                 plot_dendrogram_for_substrate_rep(next_substrate_rep, selected_substrate_representation)
@@ -138,6 +142,6 @@ def select_features_for_representation(representation_type, ligand: bool):
 if __name__ == "__main__":
     # test loading of data
     selected_ligand_representations = ['dft_nbd_model']
-    selected_substrate_representations = ['ecfp']
+    selected_substrate_representations = ['sterimol']
     df = load_and_merge_representations_and_experimental_response(selected_ligand_representations, selected_substrate_representations)
     print(df.groupby('Substrate').count())

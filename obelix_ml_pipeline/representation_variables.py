@@ -23,5 +23,5 @@ DFT_NBD_MODEL = ['bite_angle', 'cone_angle', 'buried_volume_Rh_4A', 'buried_volu
 # ToDo: add selection for sigmangroup descriptors
 
 # selected features for substrate representations
-STERIMOL = ['index', 'L', 'B_1', 'B_5']
+STERIMOL = ['L', 'B_1', 'B_5']
 

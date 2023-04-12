@@ -76,7 +76,8 @@ def plot_dendrogram_for_substrate_rep(df, representation_type):
     # for plotting drop all columns containing smiles
     df = df.loc[:, ~df.columns.str.contains('SMILES|smiles')]
     scaler = StandardScaler()
-    X = scaler.fit_transform(df.iloc[:, 1:].values)
+    features = df.loc[:, ~df.columns.str.contains('index')].values
+    X = scaler.fit_transform(features)
     model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
     model = model.fit(X)
     plt.figure()

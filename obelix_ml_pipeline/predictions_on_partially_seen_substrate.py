@@ -16,7 +16,7 @@ from obelix_ml_pipeline.machine_learning import prepare_classification_df, train
 
 def predict_partially_seen_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs):
+                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False):
     ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
                        selected_ligand_representations]
     # flatten list of lists
@@ -30,7 +30,7 @@ def predict_partially_seen_substrate(selected_ligand_representations, selected_s
 
     # load selected representations and experimental response
     df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
-                                                                  selected_substrate_representations)
+                                                                  selected_substrate_representations, plot_dendrograms)
     # for the dataframe we want the ligand number, substrate name, target and ligand/substrate features
     df = df[[ligand_numbers_column, substrate_names_column, target] + features]
     if 'accuracy' in scoring:  # this means that we are doing a classification task
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     print(f'Test size in training (based on K-fold): {1/train_splits}')
     best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test = predict_partially_seen_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs)
+                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms)
     fig_cm.show()
     # fig_fi.show()
     testing_confusion_fig.show()
@@ -92,5 +92,5 @@ if __name__ == '__main__':
     print(f'Test size: {1 / train_splits}')
     best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_balanced_accuracy_test, testing_confusion_fig, testing_cm_test = predict_partially_seen_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs)
+                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms)
     testing_confusion_fig.show()
