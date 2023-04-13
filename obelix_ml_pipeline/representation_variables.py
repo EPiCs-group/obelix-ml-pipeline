@@ -6,7 +6,7 @@
 
 # available ligand and substrate representations
 AVAILABLE_LIGAND_REPRESENTATION_TYPES = ['dft_nbd_model', 'dl_chylon', 'ecfp', 'sigmangroup']
-AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES = ['dft_steric_fingerprint', 'smiles_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit', 'sterimol']
+AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES = ['dft_steric_fingerprint', 'smiles_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit', 'sterimol', 'ohe']
 
 # selected features for ligand representations
 DFT_NBD_MODEL = ['bite_angle', 'cone_angle', 'buried_volume_Rh_4A', 'buried_volume_Rh_5A',

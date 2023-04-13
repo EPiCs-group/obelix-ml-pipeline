@@ -122,7 +122,7 @@ def select_features_for_representation(representation_type, ligand: bool):
         if representation_type == 'dft_nbd_model':
             return DFT_NBD_MODEL
         # these representations are always the same, so automatically determined
-        if representation_type in ['ecfp', 'dl_chylon']:
+        if representation_type in ['ecfp', 'dl_chylon', 'sigmangroup']:
             return load_representation_and_return_all_columns_except_index(load_ligand_representations, representation_type)
         return None
     elif representation_type in AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES and not ligand:
@@ -130,7 +130,7 @@ def select_features_for_representation(representation_type, ligand: bool):
         if representation_type == 'sterimol':
             return STERIMOL
         # these representations are always the same, so automatically determined
-        if representation_type in ['smiles_steric_fingerprint', 'dft_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit']:
+        if representation_type in ['smiles_steric_fingerprint', 'dft_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit','ohe']:
             return load_representation_and_return_all_columns_except_index(load_substrate_representations, representation_type)
         return None
     else:
