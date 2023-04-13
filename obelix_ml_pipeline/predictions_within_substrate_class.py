@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 from obelix_ml_pipeline.load_representations import select_features_for_representation, load_and_merge_representations_and_experimental_response
 from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model
-
+from obelix_ml_pipeline.data_classes import PredictionResults
 
 def predict_within_substrate_class(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
@@ -52,7 +52,9 @@ def predict_within_substrate_class(selected_ligand_representations, selected_sub
                                                                                         substrate_names_column, target,
                                                                                         best_model, scoring=scoring,
                                                                                         print_results=print_ml_results)
-    return best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test
+
+    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test)
+    return prediction_results
 
 
 if __name__ == '__main__':
@@ -74,12 +76,12 @@ if __name__ == '__main__':
     print_ml_results = True
     print('Training and testing classifier')
     print(f'Test size in training (based on K-fold): {1 / train_splits}')
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test = predict_within_substrate_class(selected_ligand_representations, selected_substrate_representations,
+    prediction_results = predict_within_substrate_class(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
                                     selected_substrate, training_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms)
-    fig_cm.show()
+    prediction_results.fig_cm.show()
     # fig_fi.show()
-    testing_confusion_fig.show()
+    prediction_results.testing_confusion_fig.show()
 
     # try regression with loaded representations
     target = 'EE'
@@ -89,8 +91,8 @@ if __name__ == '__main__':
     binary = False
     print('Training and testing regression')
     print(f'Test size: {1 / train_splits}')
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test = predict_within_substrate_class(
+    prediction_results = predict_within_substrate_class(
         selected_ligand_representations, selected_substrate_representations,
         ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
         selected_substrate, training_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms)
-    testing_confusion_fig.show()
+    prediction_results.testing_confusion_fig.show()
