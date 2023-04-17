@@ -11,7 +11,9 @@ import seaborn as sns
 from sklearn.model_selection import StratifiedShuffleSplit, StratifiedKFold
 from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, r2_score, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.manifold import SpectralEmbedding
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 import plotly.express as px
 
@@ -141,3 +143,30 @@ def prepare_classification_df(df, target, threshold, binary=True):
         pass
 
     return df
+
+
+# function for fitting standard scaler to the training data and performing PCA or spectral embedding
+# returns the fitted scaler and the transformed training data
+def reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer):
+    # fit scaler to training data
+    train_data = train_data.copy()
+    train_data = train_data.reset_index(drop=True)
+    X_train = train_data.drop([target, ligand_numbers_column, substrate_names_column], axis=1)
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    # fit transformer to the transformed training data
+    X_train_transformed = transformer.fit_transform(X_train)
+    # add original columns back to the transformed training data
+    X_train_transformed = pd.DataFrame(X_train_transformed, columns=[f'PC{i}' for i in range(1, X_train_transformed.shape[1] + 1)])
+    X_train_transformed[[ligand_numbers_column, substrate_names_column, target]] = train_data[[ligand_numbers_column, substrate_names_column, target]]
+
+    # transform test data
+    test_data = test_data.copy()
+    test_data = test_data.reset_index(drop=True)
+    X_test = test_data.drop([target, ligand_numbers_column, substrate_names_column], axis=1)
+    X_test = scaler.transform(X_test)
+    X_test_transformed = transformer.transform(X_test)
+    # add original columns back to the transformed test data
+    X_test_transformed = pd.DataFrame(X_test_transformed, columns=[f'PC{i}' for i in range(1, X_test_transformed.shape[1] + 1)])
+    X_test_transformed[[ligand_numbers_column, substrate_names_column, target]] = test_data[[ligand_numbers_column, substrate_names_column, target]]
+    return scaler, transformer, X_train_transformed, X_test_transformed

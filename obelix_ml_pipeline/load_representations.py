@@ -139,6 +139,14 @@ def select_features_for_representation(representation_type, ligand: bool):
                          f'and {AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES} for substrates')
 
 
+# get number of features for a representation
+def get_number_of_features_for_representation(representation_type, ligand: bool):
+    selected_features = select_features_for_representation(representation_type, ligand)
+    if selected_features is None:
+        raise ValueError(f'Could not determine number of features for representation type {representation_type}')
+    return len(selected_features)
+
+
 if __name__ == "__main__":
     # test loading of data
     selected_ligand_representations = ['dft_nbd_model']
