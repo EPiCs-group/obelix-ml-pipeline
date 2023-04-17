@@ -37,7 +37,7 @@ def predict_within_substrate_class(selected_ligand_representations, selected_sub
         df = prepare_classification_df(df, target, target_threshold, binary)
 
     subset_data = df.loc[df[substrate_names_column] == selected_substrate]
-    subset_train, subset_test = train_test_split(subset_data, test_size=1 - training_size, random_state=42)
+    subset_train, subset_test = train_test_split(subset_data, test_size=1 - training_size, random_state=42, stratify = subset_data[target].values)
     train_data = subset_train
     best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
