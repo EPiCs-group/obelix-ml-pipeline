@@ -8,13 +8,14 @@
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 from obelix_ml_pipeline.load_representations import select_features_for_representation, load_and_merge_representations_and_experimental_response
-from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model
+from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model, reduce_dimensionality_train_test
 from obelix_ml_pipeline.data_classes import PredictionResults
 
 
 def predict_out_of_sample_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, list_of_test_substrates, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False):
+                                    list_of_training_substrates, list_of_test_substrates, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
+                                    reduce_train_test_data_dimensionality=False, transformer=None):
     ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
                        selected_ligand_representations]
     # flatten list of lists
@@ -35,6 +36,13 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
         df = prepare_classification_df(df, target, target_threshold, binary)
     train_data = df.copy()
     train_data = train_data[train_data[substrate_names_column].isin(list_of_training_substrates)]
+    test_data = df.copy()
+    test_data = test_data[test_data[substrate_names_column].isin(list_of_test_substrates)]
+
+    # reduce dimensionality of train and test data
+    if reduce_train_test_data_dimensionality and transformer is not None:
+        scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
+
     best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
@@ -42,8 +50,6 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
         print_results=print_ml_results)
 
     # # test model on test set
-    test_data = df.copy()
-    test_data = test_data[test_data[substrate_names_column].isin(list_of_test_substrates)]
     testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data, ligand_numbers_column,
                                                                                         substrate_names_column, target,
                                                                                         best_model, scoring=scoring,
@@ -56,6 +62,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
 
 
 if __name__ == "__main__":
+    from sklearn.decomposition import PCA
     # try classifier with loaded representations
     selected_ligand_representations = ['dft_nbd_model']
     selected_substrate_representations = ['sterimol']
@@ -72,6 +79,8 @@ if __name__ == "__main__":
     list_of_training_substrates = ['SM1', 'SM2']
     list_of_test_substrates = ['SM3']
     print_ml_results = True
+    reducte_train_test_data_dimensionality = True
+    transformer = PCA(n_components=0.95, random_state=42)
     print('Training and testing classifier')
     print(f'Test size in training (based on K-fold): {1/train_splits}')
     # do the same with general function predict_out_of_sample_substrate
@@ -81,7 +90,8 @@ if __name__ == "__main__":
         substrate_names_column, target, target_threshold, train_splits, binary=binary,
         list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
         rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs,
-        plot_dendrograms=plot_dendrograms)
+        plot_dendrograms=plot_dendrograms, reduce_train_test_data_dimensionality=reducte_train_test_data_dimensionality,
+        transformer=transformer)
     prediction_results.fig_cm.show()
     # fig_fi.show()
     prediction_results.testing_confusion_fig.show()
