@@ -11,13 +11,14 @@ from sklearn.model_selection import train_test_split
 
 
 from obelix_ml_pipeline.load_representations import select_features_for_representation, load_and_merge_representations_and_experimental_response
-from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model
+from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model, reduce_dimensionality_train_test
 from obelix_ml_pipeline.data_classes import PredictionResults
 
 
 def predict_partially_seen_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False):
+                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
+                                    reduce_train_test_data_dimensionality=False, transformer=None):
     ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
                        selected_ligand_representations]
     # flatten list of lists
@@ -40,6 +41,12 @@ def predict_partially_seen_substrate(selected_ligand_representations, selected_s
     subset_data = df.loc[df[substrate_names_column] == subset_substrate]
     subset_train, subset_test = train_test_split(subset_data, test_size=1-subset_size, random_state=42)
     train_data = pd.concat([df.loc[df[substrate_names_column] == s] for s in list_of_training_substrates] + [subset_train])
+    test_data = subset_test
+    # reduce dimensionality of train and test data
+    if reduce_train_test_data_dimensionality and transformer is not None:
+        scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
+    
+    
     best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
@@ -47,7 +54,6 @@ def predict_partially_seen_substrate(selected_ligand_representations, selected_s
         print_results=print_ml_results)
 
     # # test model on test set
-    test_data = subset_test
     testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data,
                                                                                         ligand_numbers_column,
                                                                                         substrate_names_column, target,
