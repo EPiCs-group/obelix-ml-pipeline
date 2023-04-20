@@ -25,3 +25,4 @@ dependencies:
   - typing-extensions
   - notebook
   - plotly==5.14.0
+  - scikit-learn-intelex
