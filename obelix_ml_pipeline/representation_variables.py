@@ -5,7 +5,7 @@
 #  __contact__ = a.v.kalikadien@tudelft.nl            #
 
 # available ligand and substrate representations
-AVAILABLE_LIGAND_REPRESENTATION_TYPES = ['dft_nbd_model', 'dl_chylon', 'ecfp', 'sigmangroup','ohe', 'dft_nbd_model_fairsubset', 'dl_chylon_fairsubset', 'ecfp_fairsubset', 'sigmangroup_fairsubset']
+AVAILABLE_LIGAND_REPRESENTATION_TYPES = ['dft_nbd_model', 'dft_nbd_model_with_solvation', 'dl_chylon', 'ecfp', 'sigmangroup','ohe', 'dft_nbd_model_fairsubset', 'dl_chylon_fairsubset', 'ecfp_fairsubset', 'sigmangroup_fairsubset']
 AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES = ['dft_steric_fingerprint', 'smiles_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit', 'sterimol', 'ohe']
 
 # selected features for ligand representations

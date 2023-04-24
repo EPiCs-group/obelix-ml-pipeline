@@ -8,6 +8,36 @@ import pandas as pd
 from obelix_ml_pipeline.representation_variables import AVAILABLE_LIGAND_REPRESENTATION_TYPES, AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES
 from obelix_ml_pipeline.utilities import load_csv_or_excel_file_to_df, merge_dfs, plot_dendrogram_for_substrate_rep
 from obelix_ml_pipeline.representation_variables import AVAILABLE_LIGAND_REPRESENTATION_TYPES, AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES, DFT_NBD_MODEL, STERIMOL
+from obelix_ml_pipeline.machine_learning import prepare_classification_df
+
+def prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, binary, scoring, plot_dendrograms=False):
+    ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
+                       selected_ligand_representations]
+    # flatten list of lists
+    ligand_features = [item for sublist in ligand_features for item in sublist]
+    substrate_features = [select_features_for_representation(representation_type, ligand=False) for representation_type
+                          in selected_substrate_representations]
+    # flatten list of lists
+    substrate_features = [item for sublist in substrate_features for item in sublist]
+    # print(substrate_features)
+    features = ligand_features + substrate_features
+
+    # load selected representations and experimental response
+    df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
+                                                                  selected_substrate_representations, plot_dendrograms)
+    # for the classification dataframe we want the ligand number, substrate name, target and ligand/substrate features
+    df = df[[ligand_numbers_column, substrate_names_column, target] + features]
+    if 'accuracy' in scoring:  # this means that we are doing a classification task
+        df = prepare_classification_df(df, target, target_threshold, binary)
+
+    # if a row contains a NaN value, drop it and print a warning + Ligand# of dropped row
+    if df.isnull().values.any():
+        print('WARNING: NaN values detected in dataframe, dropping rows with NaN values')
+        df = df.dropna(axis=0, how='any')
+        print('Ligand# of dropped rows:')
+        print(df[df.isnull().any(axis=1)][ligand_numbers_column].values)
+
+    return df
 
 
 def load_and_merge_representations_and_experimental_response(selected_ligand_representations, selected_substrate_representations, plot_dendrograms=False):
@@ -119,7 +149,7 @@ def load_representation_and_return_all_columns_except_index(load_function, repre
 def select_features_for_representation(representation_type, ligand: bool):
     if representation_type in AVAILABLE_LIGAND_REPRESENTATION_TYPES and ligand:
         # these representations are loaded from representation_variables.py
-        if representation_type in ['dft_nbd_model','dft_nbd_model_fairsubset']:
+        if representation_type in ['dft_nbd_model','dft_nbd_model_fairsubset', 'dft_nbd_model_with_solvation']:
             return DFT_NBD_MODEL
         # these representations are always the same, so automatically determined
         if representation_type in ['ecfp', 'dl_chylon', 'sigmangroup', 'ecfp_fairsubset', 'ohe', 'dl_chylon_fairsubset', 'sigmangroup_fairsubset']:

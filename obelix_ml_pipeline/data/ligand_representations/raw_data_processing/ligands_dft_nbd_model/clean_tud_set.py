@@ -50,19 +50,24 @@ def preprocess_tud_dft_descriptors(df):
     return df
 
 
-df = pd.read_excel('clean_Rh_ligand_NBD_DFT_descriptors_v3.xlsx', 'Sheet1')
-df = df.loc[:, ~df.columns.str.contains('index|idx|element')]  # remove elements, indices
-df = df.loc[:,~df.columns.str.contains('orbital_occupation')]  # remove descriptors that are prone to introducing errors
-df = df.drop(['Code', 'Ligand alias', 	'CAS', 	'Formula',	'Class',	'Eq to Rh', 'Canonical SMILES', 'Isomeric SMILES', 'InChI', 'InChI Key', 'InChI key main layer',
-                                            'filename_tud', 'cas_or_ligand#', 'cas', 'optimization_success_dft'], axis=1)  # remove redundant columns
-df = preprocess_tud_dft_descriptors(df)  # process the descriptors to create useful representations
+def apply_preprocessing(df):
+    df = df.loc[:, ~df.columns.str.contains('index|idx|element')]  # remove elements, indices
+    df = df.loc[:,~df.columns.str.contains('orbital_occupation')]  # remove descriptors that are prone to introducing errors
+    df = df.drop(['Code', 'Ligand alias', 	'CAS', 	'Formula',	'Class',	'Eq to Rh', 'Canonical SMILES', 'Isomeric SMILES', 'InChI', 'InChI Key', 'InChI key main layer',
+                                                'filename_tud', 'cas_or_ligand#', 'cas', 'optimization_success_dft'], axis=1)  # remove redundant columns
+    df = preprocess_tud_dft_descriptors(df)  # process the descriptors to create useful representations
 
-# check if all values per column are finite (if column is numerical) and not NaN, else print the column name
-for col in df.columns:
-    if df[col].dtype.kind in 'ifc' and np.isfinite(df[col]).all() and not np.isnan(df[col]).all():
-        pass
-    else:
-        print(col)
+    # check if all values per column are finite (if column is numerical) and not NaN, else print the column name
+    for col in df.columns:
+        if df[col].dtype.kind in 'ifc' and np.isfinite(df[col]).all() and not np.isnan(df[col]).all():
+            pass
+        else:
+            print(col)
 
-# write df to file
-df.to_csv('../ligands_dft_nbd_model.csv', index=False)
+    # write df to file
+    df.to_csv('../ligands_dft_nbd_model.csv', index=False)
+
+
+if __name__ == "__main__":
+    df = pd.read_excel('clean_Rh_ligand_NBD_DFT_descriptors_v3.xlsx', 'Sheet1')
+    apply_preprocessing(df)

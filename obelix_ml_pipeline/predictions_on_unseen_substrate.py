@@ -7,7 +7,7 @@
 # objective 1: For a complete new substrate, the model gives the performance of 192 ligands with an accuracy as high as possible
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
-from obelix_ml_pipeline.load_representations import select_features_for_representation, load_and_merge_representations_and_experimental_response
+from obelix_ml_pipeline.load_representations import prepare_selected_representations_df
 from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model, reduce_dimensionality_train_test
 from obelix_ml_pipeline.data_classes import PredictionResults
 
@@ -16,24 +16,8 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
                                     list_of_training_substrates, list_of_test_substrates, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
                                     reduce_train_test_data_dimensionality=False, transformer=None):
-    ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
-                       selected_ligand_representations]
-    # flatten list of lists
-    ligand_features = [item for sublist in ligand_features for item in sublist]
-    substrate_features = [select_features_for_representation(representation_type, ligand=False) for representation_type
-                          in selected_substrate_representations]
-    # flatten list of lists
-    substrate_features = [item for sublist in substrate_features for item in sublist]
-    # print(substrate_features)
-    features = ligand_features + substrate_features
+    df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, binary, scoring, plot_dendrograms)
 
-    # load selected representations and experimental response
-    df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
-                                                                  selected_substrate_representations, plot_dendrograms)
-    # for the classification dataframe we want the ligand number, substrate name, target and ligand/substrate features
-    df = df[[ligand_numbers_column, substrate_names_column, target] + features]
-    if 'accuracy' in scoring:  # this means that we are doing a classification task
-        df = prepare_classification_df(df, target, target_threshold, binary)
     train_data = df.copy()
     train_data = train_data[train_data[substrate_names_column].isin(list_of_training_substrates)]
     test_data = df.copy()
@@ -64,7 +48,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
 if __name__ == "__main__":
     from sklearn.decomposition import PCA
     # try classifier with loaded representations
-    selected_ligand_representations = ['dft_nbd_model']
+    selected_ligand_representations = ['dft_nbd_model_with_solvation']
     selected_substrate_representations = ['sterimol']
     target = 'Conversion'
     target_threshold = 0.8
