@@ -20,13 +20,22 @@ def predict_partially_seen_substrate(selected_ligand_representations, selected_s
                                     list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
                                     reduce_train_test_data_dimensionality=False, transformer=None):
     df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations,
-                                             ligand_numbers_column, substrate_names_column, target, target_threshold,
-                                             binary, scoring, plot_dendrograms)
+                                             ligand_numbers_column, substrate_names_column, target, plot_dendrograms)
 
     subset_data = df.loc[df[substrate_names_column] == subset_substrate]
     subset_train, subset_test = train_test_split(subset_data, test_size=1-subset_size, random_state=42)
+
     train_data = pd.concat([df.loc[df[substrate_names_column] == s] for s in list_of_training_substrates] + [subset_train])
     test_data = subset_test
+
+    # in case of a binary classification task we need to transform the target column to a binary column
+    if 'accuracy' in scoring:  # this means that we are doing a classification task
+        if target_threshold is None:
+            target_threshold = train_data[target].median()
+            print(f'No target threshold provided, using median of target column in training data as threshold: {target_threshold}')
+        train_data = prepare_classification_df(train_data, target, target_threshold, binary)
+        test_data = prepare_classification_df(test_data, target, target_threshold, binary)
+
     # reduce dimensionality of train and test data
     if reduce_train_test_data_dimensionality and transformer is not None:
         scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)

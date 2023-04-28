@@ -16,12 +16,20 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
                                     list_of_training_substrates, list_of_test_substrates, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
                                     reduce_train_test_data_dimensionality=False, transformer=None):
-    df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, binary, scoring, plot_dendrograms)
+    df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, plot_dendrograms)
 
     train_data = df.copy()
     train_data = train_data[train_data[substrate_names_column].isin(list_of_training_substrates)]
     test_data = df.copy()
     test_data = test_data[test_data[substrate_names_column].isin(list_of_test_substrates)]
+
+    # in case of a binary classification task we need to transform the target column to a binary column
+    if 'accuracy' in scoring:  # this means that we are doing a classification task
+        if target_threshold is None:
+            target_threshold = train_data[target].median()
+            print(f'No target threshold provided, using median of target column in training data as threshold: {target_threshold}')
+        train_data = prepare_classification_df(train_data, target, target_threshold, binary)
+        test_data = prepare_classification_df(test_data, target, target_threshold, binary)
 
     # reduce dimensionality of train and test data
     if reduce_train_test_data_dimensionality and transformer is not None:

@@ -44,15 +44,23 @@ def predict_within_substrate_class(selected_ligand_representations,
             
     # for the dataframe we want the ligand number, substrate name, target and ligand/substrate features
     df = df[[ligand_numbers_column, substrate_names_column, target] + features]
-    if 'accuracy' in scoring:  # this means that we are doing a classification task
-        df = prepare_classification_df(df, target, target_threshold, binary)
 
     subset_data = df.loc[df[substrate_names_column] == selected_substrate]
-    
-    if binary:
-        subset_train, subset_test = train_test_split(subset_data, test_size=1 - training_size, random_state=42, stratify = subset_data[target].values)
-    else:
-        subset_train, subset_test = train_test_split(subset_data, test_size=1 - training_size, random_state=42)
+
+    # old approach from when binary preparation was done on the whole dataset without dynamic target_threshold
+    # if binary:
+    #     subset_train, subset_test = train_test_split(subset_data, test_size=1 - training_size, random_state=42,
+    #                                                  stratify=subset_data[target].values)
+    # else:
+    subset_train, subset_test = train_test_split(subset_data, test_size=1 - training_size, random_state=42)
+
+    # in case of a binary classification task we need to transform the target column to a binary column
+    if 'accuracy' in scoring:  # this means that we are doing a classification task
+        if target_threshold is None:
+            target_threshold = subset_train[target].median()
+            print(f'No target threshold provided, using median of target column in training data as threshold: {target_threshold}')
+        subset_train = prepare_classification_df(subset_train, target, target_threshold, binary)
+        subset_test = prepare_classification_df(subset_test, target, target_threshold, binary)
     train_data = subset_train
     test_data = subset_test
     # reduce dimensionality of train and test data

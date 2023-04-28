@@ -10,7 +10,8 @@ from obelix_ml_pipeline.utilities import load_csv_or_excel_file_to_df, merge_dfs
 from obelix_ml_pipeline.representation_variables import AVAILABLE_LIGAND_REPRESENTATION_TYPES, AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES, DFT_NBD_MODEL, STERIMOL
 from obelix_ml_pipeline.machine_learning import prepare_classification_df
 
-def prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, target_threshold, binary, scoring, plot_dendrograms=False):
+
+def prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, plot_dendrograms=False):
     ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
                        selected_ligand_representations]
     # flatten list of lists
@@ -25,10 +26,10 @@ def prepare_selected_representations_df(selected_ligand_representations, selecte
     # load selected representations and experimental response
     df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
                                                                   selected_substrate_representations, plot_dendrograms)
-    # for the classification dataframe we want the ligand number, substrate name, target and ligand/substrate features
+    # for the dataframe we want the ligand number, substrate name, target and ligand/substrate features
     df = df[[ligand_numbers_column, substrate_names_column, target] + features]
-    if 'accuracy' in scoring:  # this means that we are doing a classification task
-        df = prepare_classification_df(df, target, target_threshold, binary)
+    # if 'accuracy' in scoring:  # this means that we are doing a classification task
+    #     df = prepare_classification_df(df, target, target_threshold, binary)
 
     # if a row contains a NaN value, drop it and print a warning + Ligand# of dropped row
     if df.isnull().values.any():
