@@ -28,7 +28,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
     # flatten list of lists
     ligand_features = [item for sublist in ligand_features for item in sublist]
 
-    features = ligand_features
+    features = ligand_features  # in this case the model is substrate specific, so we only use ligand features
 
     # load selected ligand representations and experimental response
     # df = load_and_merge_representations_and_experimental_response(selected_ligand_representations, plot_dendrograms)
@@ -51,7 +51,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
     # for the dataframe we want the ligand number, substrate name, target and ligand/substrate features
     df = df[[ligand_numbers_column, substrate_names_column, target] + features]
 
-    randomly_chosen_fraction = 0.9
+    randomly_chosen_fraction = 0.9  # fraction of data that is randomly selected to create a model
     best_best_model = None
     best_training_test_scores_mean = None
     best_training_test_scores_std = None
@@ -61,14 +61,18 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
     best_testing_confusion_fig = None
     best_testing_cm_test = None
     best_testing_performance_test = 0
+    best_train_data = None
+    best_test_data = None
+    best_random_seed = None
+    best_randomly_chosen_fraction = None
 
+    # we keep decreasing the fraction of the data that is randomly selected to create a model until the performance
+    # of the model is above the threshold or the fraction is 0.1. We're trying to see if there is a trend in
+    # data for which the model performs well
     while best_testing_performance_test < performance_threshold and randomly_chosen_fraction > 0.1:
         for random_seed in subset_random_seeds:
-            # test performance of the model for a fraction of the subset data, if performance is below threshold, choose another random subset
-            # if all random subsets have performance below threshold, decrease the fraction of the subset data
-            # until it reaches 0.1
-            print(random_seed)
-            print(randomly_chosen_fraction)
+            # print(random_seed)
+            # print(randomly_chosen_fraction)
             # choose subset of the data based on substrate
             subset_data = df.loc[df[substrate_names_column] == selected_substrate]
             # choose random subset of the data based on the randomly_chosen_fraction for training/test
@@ -116,12 +120,15 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
                 best_testing_performance_test = testing_performance_test
                 best_testing_confusion_fig = testing_confusion_fig
                 best_testing_cm_test = testing_cm_test
-
+                best_train_data = train_data
+                best_test_data = test_data
+                best_random_seed = random_seed
+                best_randomly_chosen_fraction = randomly_chosen_fraction
 
         randomly_chosen_fraction -= 0.1
     prediction_results = PredictionResults(best_best_model, best_training_best_model_performance, best_training_test_scores_mean,
                                              best_training_test_scores_std, best_fig_cm, best_fig_fi, best_testing_performance_test,
-                                                best_testing_confusion_fig, best_testing_cm_test)
+                                                best_testing_confusion_fig, best_testing_cm_test, best_train_data, best_test_data, best_random_seed, best_randomly_chosen_fraction)
     return prediction_results
 
 

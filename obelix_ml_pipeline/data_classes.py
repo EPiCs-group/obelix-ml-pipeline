@@ -19,3 +19,8 @@ class PredictionResults:
     testing_performance_test: float
     testing_confusion_fig: object
     testing_cm_test: object
+    # the following are for objective 4, in which a randomly (shrinking) subset of the data is used
+    train_data: object = None
+    test_data: object = None
+    random_seed: int = None
+    randomly_chosen_fraction: float = None

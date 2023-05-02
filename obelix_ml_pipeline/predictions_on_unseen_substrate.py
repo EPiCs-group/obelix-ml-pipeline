@@ -48,7 +48,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
                                                                                         print_results=print_ml_results)
 
     # load results in a class
-    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test)
+    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
 
     return prediction_results
 
@@ -87,18 +87,19 @@ if __name__ == "__main__":
     prediction_results.fig_cm.show()
     # fig_fi.show()
     prediction_results.testing_confusion_fig.show()
+    prediction_results.test_data.to_csv('test_data.csv')
 
-    # try regression with loaded representations
-    target = 'EE'
-    target_threshold = 0.6
-    rf_model = RandomForestRegressor(random_state=42)
-    scoring = 'r2'
-    binary = False
-    print('Training and testing regression')
-    print(f'Test size: {1/train_splits}')
-    prediction_results = predict_out_of_sample_substrate(
-        selected_ligand_representations, selected_substrate_representations, ligand_numbers_column,
-        substrate_names_column, target, target_threshold, train_splits, binary=binary,
-        list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
-        rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs, plot_dendrograms=plot_dendrograms)
-    prediction_results.testing_confusion_fig.show()
+    # # try regression with loaded representations
+    # target = 'EE'
+    # target_threshold = 0.6
+    # rf_model = RandomForestRegressor(random_state=42)
+    # scoring = 'r2'
+    # binary = False
+    # print('Training and testing regression')
+    # print(f'Test size: {1/train_splits}')
+    # prediction_results = predict_out_of_sample_substrate(
+    #     selected_ligand_representations, selected_substrate_representations, ligand_numbers_column,
+    #     substrate_names_column, target, target_threshold, train_splits, binary=binary,
+    #     list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
+    #     rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs, plot_dendrograms=plot_dendrograms)
+    # prediction_results.testing_confusion_fig.show()
