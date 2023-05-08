@@ -71,7 +71,7 @@ if __name__ == "__main__":
     list_of_training_substrates = ['SM1', 'SM2']
     list_of_test_substrates = ['SM3']
     print_ml_results = True
-    reducte_train_test_data_dimensionality = True
+    reduce_train_test_data_dimensionality = True
     transformer = PCA(n_components=0.95, random_state=42)
     print('Training and testing classifier')
     print(f'Test size in training (based on K-fold): {1/train_splits}')
@@ -82,12 +82,8 @@ if __name__ == "__main__":
         substrate_names_column, target, target_threshold, train_splits, binary=binary,
         list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
         rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs,
-        plot_dendrograms=plot_dendrograms, reduce_train_test_data_dimensionality=reducte_train_test_data_dimensionality,
+        plot_dendrograms=plot_dendrograms, reduce_train_test_data_dimensionality=reduce_train_test_data_dimensionality,
         transformer=transformer)
-    prediction_results.fig_cm.show()
-    # fig_fi.show()
-    prediction_results.testing_confusion_fig.show()
-    prediction_results.test_data.to_csv('test_data.csv')
 
     # # try regression with loaded representations
     # target = 'EE'
