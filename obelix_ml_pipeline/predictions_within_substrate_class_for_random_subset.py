@@ -58,6 +58,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
     best_training_best_model_performance = None
     best_fig_cm = None
     best_fig_fi = None
+    best_df_fi = None
     best_testing_confusion_fig = None
     best_testing_cm_test = None
     best_testing_performance_test = 0
@@ -101,7 +102,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
                                                                                               substrate_names_column,
                                                                                               transformer)
 
-            best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
+            best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi = train_ml_model(
                 train_data, ligand_numbers_column, substrate_names_column, target, rf_model, train_splits, scoring, n_jobs, print_ml_results)
 
             testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data,
@@ -117,6 +118,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
                 best_training_best_model_performance = training_best_model_performance
                 best_fig_cm = fig_cm
                 best_fig_fi = fig_fi
+                best_df_fi = df_fi
                 best_testing_performance_test = testing_performance_test
                 best_testing_confusion_fig = testing_confusion_fig
                 best_testing_cm_test = testing_cm_test
@@ -127,7 +129,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
 
         randomly_chosen_fraction -= 0.1
     prediction_results = PredictionResults(best_best_model, best_training_best_model_performance, best_training_test_scores_mean,
-                                             best_training_test_scores_std, best_fig_cm, best_fig_fi, best_testing_performance_test,
+                                             best_training_test_scores_std, best_fig_cm, best_fig_fi, best_df_fi, best_testing_performance_test,
                                                 best_testing_confusion_fig, best_testing_cm_test, best_train_data, best_test_data, best_random_seed, best_randomly_chosen_fraction)
     return prediction_results
 

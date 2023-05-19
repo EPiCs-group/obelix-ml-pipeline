@@ -6,6 +6,8 @@
 
 from dataclasses import dataclass
 
+import pandas as pd
+
 
 # dataclass for the results of the prediction
 @dataclass
@@ -16,6 +18,7 @@ class PredictionResults:
     training_test_scores_std: float
     fig_cm: object
     fig_fi: object
+    df_fi: pd.DataFrame
     testing_performance_test: float
     testing_confusion_fig: object
     testing_cm_test: object

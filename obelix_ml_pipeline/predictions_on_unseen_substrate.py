@@ -35,7 +35,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
     if reduce_train_test_data_dimensionality and transformer is not None:
         scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
 
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
+    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
         rf_model=rf_model, cv=train_splits, scoring=scoring, n_jobs=n_jobs,
@@ -48,7 +48,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
                                                                                         print_results=print_ml_results)
 
     # load results in a class
-    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
+    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
 
     return prediction_results
 

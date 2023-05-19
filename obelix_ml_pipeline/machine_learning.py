@@ -78,12 +78,17 @@ def train_ml_model(train_data, ligand_numbers_column, substrate_names_column, ta
     # figure for the feature importance of the best model interactively with plotly sorted by importance
     feature_importances = pd.DataFrame(best_model.feature_importances_, index=X.columns,
                                        columns=['importance']).sort_values('importance', ascending=False)
-    fig_fi = px.bar(feature_importances, x=feature_importances.index, y='importance',
+    # add standard deviation of feature importances across folds
+    feature_importances['std'] = np.std([tree.feature_importances_ for tree in best_model.estimators_], axis=0)
+    # ToDo: color bars based on whether they are substrate or ligand descriptor
+    # check if X.column is in ligand or substrate descriptors for selected representations
+    # give the column a color based on that (using color_discrete_map variable in px.bar)
+    fig_fi = px.bar(feature_importances, x=feature_importances.index, y='importance', error_y='std',
                     title='Feature importance of the best RF model')
     fig_fi.update_xaxes(title_text='Feature')
     fig_fi.update_yaxes(title_text='Importance')
 
-    return best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi
+    return best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, feature_importances
 
 
 def predict_ml_model(test_data, ligand_numbers_column, substrate_names_column, target, model, scoring, print_results):
