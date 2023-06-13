@@ -116,6 +116,12 @@ def load_ligand_representations(representation_type, columns_of_representation_t
             ligand_df = ligand_df[columns_of_representation_to_select]
         except KeyError:
             raise KeyError(f'Columns {columns_of_representation_to_select} not available in representation type {representation_type}')
+    # if a column contains any Nan values, drop the column and print the column name
+    print(f'Ligand# of columns with Nan values: {ligand_df.columns[ligand_df.isnull().any()].tolist()}')
+    # print Ligand# columns with Nan values in these columns
+    print(f'Ligand# of rows with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]["Ligand#"]}')
+    # print(f'Columns with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]}')
+    ligand_df = ligand_df.dropna(axis=1)
     return ligand_df
 
 
@@ -150,18 +156,18 @@ def load_representation_and_return_all_columns_except_index(load_function, repre
 def select_features_for_representation(representation_type, ligand: bool):
     if representation_type in AVAILABLE_LIGAND_REPRESENTATION_TYPES and ligand:
         # these representations are loaded from representation_variables.py
-        if representation_type in ['dft_nbd_model','dft_nbd_model_fairsubset', 'dft_nbd_model_with_solvation', 'dft_nbd_model_with_solvation_fairsubset']:
+        if representation_type in ['dft_nbd_model', 'dft_nbd_model_with_solvation']:
             return DFT_NBD_MODEL
         # these representations are always the same, so automatically determined
-        if representation_type in ['ecfp', 'dl_chylon', 'sigmangroup', 'ohe', 'ecfp_fairsubset', 'dl_chylon_fairsubset', 'sigmangroup_fairsubset','ohe_fairsubset']:
+        if representation_type in ['ecfp', 'ohe']:
             return load_representation_and_return_all_columns_except_index(load_ligand_representations, representation_type)
         return None
     elif representation_type in AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES and not ligand:
         # these representations are loaded from representation_variables.py
-        if representation_type == 'sterimol':
-            return STERIMOL
+        # if representation_type == 'sterimol':
+        #     return STERIMOL
         # these representations are always the same, so automatically determined
-        if representation_type in ['smiles_steric_fingerprint', 'dft_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit','ohe']:
+        if representation_type in ['smiles_steric_fingerprint', 'dft_steric_fingerprint', 'ecfp', 'ohe']:
             return load_representation_and_return_all_columns_except_index(load_substrate_representations, representation_type)
         return None
     else:
@@ -181,6 +187,6 @@ def get_number_of_features_for_representation(representation_type, ligand: bool)
 if __name__ == "__main__":
     # test loading of data
     selected_ligand_representations = ['dft_nbd_model']
-    selected_substrate_representations = ['sterimol']
+    selected_substrate_representations = ['smiles_steric_fingerprint']
     df = load_and_merge_representations_and_experimental_response(selected_ligand_representations, selected_substrate_representations)
     print(df.groupby('Substrate').count())
