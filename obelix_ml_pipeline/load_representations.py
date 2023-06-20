@@ -117,11 +117,12 @@ def load_ligand_representations(representation_type, columns_of_representation_t
         except KeyError:
             raise KeyError(f'Columns {columns_of_representation_to_select} not available in representation type {representation_type}')
     # if a column contains any Nan values, drop the column and print the column name
-    print(f'Ligand# of columns with Nan values: {ligand_df.columns[ligand_df.isnull().any()].tolist()}')
-    # print Ligand# columns with Nan values in these columns
-    print(f'Ligand# of rows with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]["Ligand#"]}')
-    # print(f'Columns with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]}')
-    ligand_df = ligand_df.dropna(axis=1)
+    if ligand_df.isnull().any().any():
+        print(f'Ligand# of columns with Nan values: {ligand_df.columns[ligand_df.isnull().any()].tolist()}')
+        # print Ligand# columns with Nan values in these columns
+        print(f'Ligand# of rows with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]["Ligand#"]}')
+        # print(f'Columns with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]}')
+        ligand_df = ligand_df.dropna(axis=1)
     return ligand_df
 
 

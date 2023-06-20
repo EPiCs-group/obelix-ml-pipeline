@@ -11,6 +11,7 @@ from obelix_ml_pipeline.load_representations import prepare_selected_representat
 from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model, reduce_dimensionality_train_test
 from obelix_ml_pipeline.data_classes import PredictionResults
 
+# from y_scramble import Scrambler
 
 def predict_out_of_sample_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
@@ -35,17 +36,40 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
     if reduce_train_test_data_dimensionality and transformer is not None:
         scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
 
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi = train_ml_model(
+    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, train_data = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
         rf_model=rf_model, cv=train_splits, scoring=scoring, n_jobs=n_jobs,
         print_results=print_ml_results)
 
     # # test model on test set
-    testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data, ligand_numbers_column,
+    testing_performance_test, testing_confusion_fig, testing_cm_test, test_data = predict_ml_model(test_data, ligand_numbers_column,
                                                                                         substrate_names_column, target,
                                                                                         best_model, scoring=scoring,
                                                                                         print_results=print_ml_results)
+
+    # # perform y-scrambling and see the model performance, if this is not much worse than the original model, the model is not good
+    # scrambler = Scrambler(best_model, iterations=10)
+    # if 'accuracy' in scoring:  # this means that we are doing a classification task
+    #     if target_threshold is None:
+    #         target_threshold = df[target].median()
+    #         print(f'No target threshold provided, using median of target column in training data as threshold: {target_threshold}')
+    #     df = prepare_classification_df(df, target, target_threshold, binary)
+    # X = df.drop([ligand_numbers_column, substrate_names_column, target], axis=1)
+    # y = df[target]
+    # scores, zscores, pvalues, significances = scrambler.validate(
+    #     X, y,
+    #     method="cross_validation",
+    #     cv_kfolds=5,
+    #     progress_bar=True,
+    #     scoring="balanced_accuracy",
+    #     cross_val_score_aggregator="mean",
+    #     pvalue_threshold=0.01
+    # )
+    # print(f'Y-scrambling results on training data: {scores}')
+    # print(f'Y-scrambling results on training data: {zscores}')
+    # print(f'Y-scrambling results on training data: {pvalues}')
+    # print(f'Y-scrambling results on training data: {significances}')
 
     # load results in a class
     prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
@@ -57,7 +81,7 @@ if __name__ == "__main__":
     from sklearn.decomposition import PCA
     # try classifier with loaded representations
     selected_ligand_representations = ['dft_nbd_model_with_solvation']
-    selected_substrate_representations = ['sterimol']
+    selected_substrate_representations = ['dft_steric_fingerprint']
     target = 'Conversion'
     target_threshold = 0.8
     rf_model = RandomForestClassifier(random_state=42)

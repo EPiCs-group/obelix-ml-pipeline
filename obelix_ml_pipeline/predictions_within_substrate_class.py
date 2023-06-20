@@ -67,7 +67,7 @@ def predict_within_substrate_class(selected_ligand_representations,
     if reduce_train_test_data_dimensionality and transformer is not None:
         scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
     
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi = train_ml_model(
+    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, train_data = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
         rf_model=rf_model, cv=train_splits, scoring=scoring, n_jobs=n_jobs,
@@ -75,7 +75,7 @@ def predict_within_substrate_class(selected_ligand_representations,
 
     # # test model on test set
     
-    testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data,
+    testing_performance_test, testing_confusion_fig, testing_cm_test, test_data = predict_ml_model(test_data,
                                                                                         ligand_numbers_column,
                                                                                         substrate_names_column, target,
                                                                                         best_model, scoring=scoring,

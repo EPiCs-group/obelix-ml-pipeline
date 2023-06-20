@@ -72,8 +72,8 @@ def train_ml_model(train_data, ligand_numbers_column, substrate_names_column, ta
 
     if print_results:
         print('Mean test performance: {:.2f} +/- {:.2f}'.format(training_test_scores_mean, training_test_scores_std))
-        print('Best model performance: {:.2f}'.format(best_model_performance))
-        print('Best model parameters: {}'.format(grid_search.best_params_))
+        print('Best training model performance: {:.2f}'.format(best_model_performance))
+        print('Best training model parameters: {}'.format(grid_search.best_params_))
 
     # figure for the feature importance of the best model interactively with plotly sorted by importance
     feature_importances = pd.DataFrame(best_model.feature_importances_, index=X.columns,
@@ -88,7 +88,9 @@ def train_ml_model(train_data, ligand_numbers_column, substrate_names_column, ta
     fig_fi.update_xaxes(title_text='Feature')
     fig_fi.update_yaxes(title_text='Importance')
 
-    return best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, feature_importances
+    # add predictions to the training data before returning it (for plotting purposes)
+    train_data['predictions'] = predictions
+    return best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, feature_importances, train_data
 
 
 def predict_ml_model(test_data, ligand_numbers_column, substrate_names_column, target, model, scoring, print_results):
@@ -126,8 +128,9 @@ def predict_ml_model(test_data, ligand_numbers_column, substrate_names_column, t
         ax.set_xlabel('True values')
         ax.set_ylabel('Predicted values')
         ax.set_title('True vs predicted values of the target for the test set')
-
-    return performance, fig_cm, cm
+    # add predictions to the test data before returning it (for plotting purposes)
+    test_data['predictions'] = y_pred
+    return performance, fig_cm, cm, test_data
 
 
 # function for preparing data for either binary or multiclass classification

@@ -41,14 +41,14 @@ def predict_partially_seen_substrate(selected_ligand_representations, selected_s
         scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
     
     
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi = train_ml_model(
+    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, train_data = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
         rf_model=rf_model, cv=train_splits, scoring=scoring, n_jobs=n_jobs,
         print_results=print_ml_results)
 
     # # test model on test set
-    testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data,
+    testing_performance_test, testing_confusion_fig, testing_cm_test, test_data = predict_ml_model(test_data,
                                                                                         ligand_numbers_column,
                                                                                         substrate_names_column, target,
                                                                                         best_model, scoring=scoring,
@@ -61,7 +61,7 @@ def predict_partially_seen_substrate(selected_ligand_representations, selected_s
 if __name__ == '__main__':
     # try classifier with loaded representations
     selected_ligand_representations = ['dft_nbd_model']
-    selected_substrate_representations = ['ecfp']
+    selected_substrate_representations = ['dft_steric_fingerprint']
     target = 'Conversion'
     target_threshold = 0.8
     rf_model = RandomForestClassifier(random_state=42)
