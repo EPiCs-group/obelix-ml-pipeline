@@ -153,6 +153,27 @@ def prepare_classification_df(df, target, threshold, binary=True):
     return df
 
 
+# function to filter ligands which are all either active or inactive in the training set
+# check for all available ligands if they have the same value across multiple substrates
+# this can be done by a groupby on the ligand number and then checking if the target column is equal to the number of substrates or 0
+# if this is the case, then the ligand is either all active or all inactive
+def filter_ligands_with_only_one_class(df, target, threshold, binary, ligand_numbers_column, list_of_substrates, print_results=True):
+    df = df.copy()
+    if threshold is None:
+        threshold = df[target].median()
+        print('No threshold was given, using the median of the target column as threshold (for filtering): ', threshold)
+    df = prepare_classification_df(df, target, threshold, binary)
+    df = df.groupby([ligand_numbers_column]).sum()
+    # only keep ligands for which the sum of target column is not equal to number of substrates or 0
+    df = df[~((df[target].astype(int) == len(list_of_substrates)) | (df[target].astype(int) == 0))]
+    # df = df[(df[target] != len(list_of_substrates)) | (df[target] != 0)]
+    # add ligand numbers column back to the dataframe
+    df = df.reset_index()
+    if print_results:
+        print(f'Number of ligands removed from training data for being active/inactive across all training substrates: {len(df[ligand_numbers_column])}')
+    return df[ligand_numbers_column]
+
+
 # function for fitting standard scaler to the training data and performing PCA or spectral embedding
 # returns the fitted scaler and the transformed training data
 def reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer):

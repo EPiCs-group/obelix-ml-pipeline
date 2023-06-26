@@ -143,7 +143,7 @@ def load_substrate_representations(representation_type, columns_of_representatio
 
 # load experimental data
 def load_experimental_response():
-    path_to_experimental_response = os.path.join(os.path.dirname(__file__), 'data', 'experimental_response', 'jnjdata_sm12378_MeOH_16h.csv')
+    path_to_experimental_response = os.path.join(os.path.dirname(__file__), 'data', 'experimental_response', 'jnjdata_sm12378_MeOH.csv')
     experimental_response_df = load_csv_or_excel_file_to_df(path_to_experimental_response)
     return experimental_response_df
 
