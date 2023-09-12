@@ -28,6 +28,13 @@ all_geometric_params = ['dihedral_angle_1', 'dihedral_angle_2', 'bite_angle', 'c
                         'distance_Rh_max_donor_gaussian', 'distance_Rh_min_donor_gaussian', 'sasa_gfn2_xtb',
                         'Rh_donor_min_d', 'Rh_donor_max_d', 'bite_angle_sin', 'bite_angle_cos',
                         'cone_angle_sin', 'cone_angle_cos']
+free_ligand_params = ['free_ligand_dipole_moment_dft',
+                           'free_ligand_dispersion_energy_dft', 'free_ligand_nbo_charge_min_donor_dft',
+                           'free_ligand_nbo_charge_max_donor_dft', 'free_ligand_mulliken_charge_min_donor_dft',
+                           'free_ligand_mulliken_charge_max_donor_dft',	'free_ligand_homo_energy_dft',
+                           'free_ligand_lumo_energy_dft', 'free_ligand_homo_lumo_gap_dft', 'free_ligand_hardness_dft',
+                           'free_ligand_softness_dft', 'free_ligand_electronegativity_dft',
+                           'free_ligand_electrophilicity_dft']
 all_electronic_and_thermodynamic_params = ['distance_pi_bond_1', 'distance_pi_bond_2', 'dispersion_p_int_Rh_gfn2_xtb',
                                            'dispersion_p_int_donor_max_gfn2_xtb',
                                            'dispersion_p_int_donor_min_gfn2_xtb', 'ip_gfn2_xtb',
@@ -44,8 +51,7 @@ all_electronic_and_thermodynamic_params = ['distance_pi_bond_1', 'distance_pi_bo
                                            'homo_energy_dft', 'lumo_energy_dft', 'homo_lumo_gap_dft',
                                            'hardness_dft', 'softness_dft', 'electronegativity_dft',
                                            'electrophilicity_dft', 'min_NBO_donor', 'max_NBO_donor',
-                                           'lone_pair_occ_min',
-                                           'lone_pair_occ_max']
+                                           'lone_pair_occ_min', 'lone_pair_occ_max'] + free_ligand_params
 all_descriptors = all_steric_params + all_geometric_params + all_electronic_and_thermodynamic_params
 
 # selected DFT NBD model descriptors for ML based on correlations
@@ -54,18 +60,21 @@ steric_params_dft_nbd = ['NE_quad', 'NW_quad', 'SW_quad',
                          '+,-,+_octant', '+,-,-_octant', '-,-,-_octant', '-,+,-_octant',
                          '+,+,-_octant', 'buried_volume_Rh_3.5A', 'buried_volume_donor_max',
                          'buried_volume_donor_min']
+# steric_params_dft_nbd = ['+,+,+_octant', '-,+,+_octant', '-,-,+_octant',
+#                          '+,-,+_octant', '+,-,-_octant', '-,-,-_octant', '-,+,-_octant',
+#                          '+,+,-_octant',]
 geometric_params_dft_nbd = ['bite_angle_sin', 'bite_angle_cos', 'cone_angle_sin', 'cone_angle_cos',
                             'dihedral_angle_1', 'dihedral_angle_2', 'distance_Rh_max_donor_gaussian',
                             'distance_Rh_min_donor_gaussian']
+
 electronic_and_thermodynamic_params_dft_nbd = ['distance_pi_bond_1', 'distance_pi_bond_2',
-                                               'dispersion_p_int_Rh_gfn2_xtb', 'dispersion_p_int_donor_max_gfn2_xtb',
-                                               'dispersion_p_int_donor_min_gfn2_xtb',
-                                               'sum_electronic_and_free_energy_dft', 'dipole_moment_dft',
+                                               'sum_electronic_and_free_energy_dft', 'free_ligand_dipole_moment_dft',
                                                'lone_pair_occupancy_min_donor_dft',
-                                               'lone_pair_occupancy_max_donor_dft', 'dispersion_energy_dft',
+                                               'lone_pair_occupancy_max_donor_dft', 'free_ligand_dispersion_energy_dft',
                                                'nbo_charge_Rh_dft', 'nbo_charge_min_donor_dft',
-                                               'nbo_charge_max_donor_dft', 'homo_lumo_gap_dft']
+                                               'nbo_charge_max_donor_dft', 'free_ligand_homo_lumo_gap_dft']
 DFT_NBD_MODEL = steric_params_dft_nbd + geometric_params_dft_nbd + electronic_and_thermodynamic_params_dft_nbd
+# DFT_NBD_MODEL = descriptor_selection_test_scientist_1
 
 OLD_DFT_NBD_MODEL = ['bite_angle', 'cone_angle', 'buried_volume_Rh_4A', 'buried_volume_Rh_5A',
                      'nbo_charge_Rh_dft', 'buried_volume_Rh_6A', 'buried_volume_Rh_7A',
@@ -80,3 +89,30 @@ OLD_DFT_NBD_MODEL = ['bite_angle', 'cone_angle', 'buried_volume_Rh_4A', 'buried_
 
 # selected features for substrate representations
 STERIMOL = ['L', 'B_1', 'B_5']
+
+if __name__ == "__main__":
+    # plot the correlation matrices for DFT_NBD_MODEL representation's groups of descriptors
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    df = pd.read_csv('data/ligand_representations/ligands_dft_nbd_model.csv')
+    plotting_options = [[all_descriptors, 'all_descriptors'], [all_steric_params, 'all_steric'],
+                        [all_geometric_params, 'all_geometric'],
+                        [all_electronic_and_thermodynamic_params, 'all_electronic_and_thermodynamic'],
+                        [free_ligand_params, 'free_ligand'],
+                        [DFT_NBD_MODEL, 'selected'], [steric_params_dft_nbd, 'selected_steric'],
+                        [geometric_params_dft_nbd, 'selected_geometric'],
+                        [electronic_and_thermodynamic_params_dft_nbd, 'selected_electronic']]
+    for plotting_option in plotting_options:
+        # big correlation matrix of all descriptors
+        fig, ax = plt.subplots(figsize=(20, 25))
+        sns.heatmap(df[plotting_option[0]].corr() ** 2, ax=ax, annot=False, cmap='coolwarm', vmin=0, vmax=1)
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig(f'correlation_matrix_{plotting_option[1]}.png', dpi=300, bbox_inches='tight')
+        # # get all columns with 'buried_volume' in name and see how they correlate with buried_volume_Rh_3.5A
+        # buried_volume_cols = [col for col in df.columns if 'buried_volume' in col]
+        # # plot correlation matrix in heatmap using sns
+        # sns.heatmap(df[buried_volume_cols].corr(), annot=False, cmap='coolwarm', vmin=0, vmax=1)
+        # plt.show()
