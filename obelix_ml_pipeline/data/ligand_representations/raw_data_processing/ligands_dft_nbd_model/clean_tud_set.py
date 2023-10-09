@@ -59,13 +59,11 @@ def preprocess_tud_dft_descriptors(df):
 
 
 def apply_preprocessing(df):
-    df = df.loc[:, ~df.columns.str.contains('index|idx|element')]  # remove elements, indices
+    df = df.loc[:, ~df.columns.str.contains('index|idx|element|time|optimization')]  # remove elements, indices, optimization info
     df = df.loc[:,~df.columns.str.contains('orbital_occupation')]  # remove descriptors that are prone to introducing errors
-    df = df.drop(['Code', 'Ligand alias', 	'CAS', 	'Formula',	'Class',	'Eq to Rh', 'Canonical SMILES', 'Isomeric SMILES', 'InChI', 'InChI Key', 'InChI key main layer',
-                                                'filename_tud', 'cas_or_ligand#', 'cas', 'optimization_success_dft'], axis=1)  # remove redundant columns
-    df = preprocess_tud_dft_descriptors(df)  # process the descriptors to create useful representations
-
-    # ToDo: preprocess free ligand descriptors and concat them to the df
+    # this is for clean_Rh_ligand_NBD_DFT_descriptors_v3.xlsx
+    # df = df.drop(['Code', 'Ligand alias', 	'CAS', 	'Formula',	'Class',	'Eq to Rh', 'Canonical SMILES', 'Isomeric SMILES', 'InChI', 'InChI Key', 'InChI key main layer',
+    #                                             'filename_tud', 'cas_or_ligand#', 'cas', 'optimization_success_dft'], axis=1)  # remove redundant columns
 
     # check if all values per column are finite (if column is numerical) and not NaN, else print the column name
     for col in df.columns:
@@ -81,7 +79,7 @@ def apply_preprocessing(df):
 
 def preprocess_free_ligand_descriptors(df):
     # keep Ligand# column and drop columns containing 'time', 'orbital_occupation', 'index', 'idx', 'element'
-    df = df.loc[:, ~df.columns.str.contains('time|orbital_occupation|index|idx|element|optimization|filename|lone_pair')]
+    df = df.loc[:, ~df.columns.str.contains('time|orbital_occupation|index|idx|element|optimization|filename')]
     # drop columns with thermodynamic descriptors such that we are only left with electronic descriptors
     df = df.loc[:, ~df.columns.str.contains('entropy|zero_point|sum_electronic')]
     # print all rows that contain NaN values
@@ -90,10 +88,11 @@ def preprocess_free_ligand_descriptors(df):
 
 
 if __name__ == "__main__":
-    df = pd.read_excel('clean_Rh_ligand_NBD_DFT_descriptors_v3.xlsx', 'Sheet1')
+    df = pd.read_csv('clean_Rh_ligand_NBD_DFT_descriptors_v8.csv')
     df = apply_preprocessing(df)
-    free_ligand_df = pd.read_csv('free_ligand_descriptors_v1.csv')
+    free_ligand_df = pd.read_csv('free_ligand_descriptors_v3.csv')
     free_ligand_df = preprocess_free_ligand_descriptors(free_ligand_df)
     # merge ../ligands_dft_nbd_model.csv and free_ligand_descriptors_v1.csv on Ligand# column
     df = df.merge(free_ligand_df, on='Ligand#')
+    df = preprocess_tud_dft_descriptors(df)  # process the descriptors to create additional representations of the data
     df.to_csv('../ligands_dft_nbd_model.csv', index=False)
