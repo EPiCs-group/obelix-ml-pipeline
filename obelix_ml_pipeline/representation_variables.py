@@ -28,13 +28,14 @@ all_geometric_params = ['dihedral_angle_1', 'dihedral_angle_2', 'bite_angle', 'c
                         'distance_Rh_max_donor_gaussian', 'distance_Rh_min_donor_gaussian', 'sasa_gfn2_xtb',
                         'Rh_donor_min_d', 'Rh_donor_max_d', 'bite_angle_sin', 'bite_angle_cos',
                         'cone_angle_sin', 'cone_angle_cos']
-free_ligand_params = ['free_ligand_dipole_moment_dft',
-                           'free_ligand_dispersion_energy_dft', 'free_ligand_nbo_charge_min_donor_dft',
-                           'free_ligand_nbo_charge_max_donor_dft', 'free_ligand_mulliken_charge_min_donor_dft',
-                           'free_ligand_mulliken_charge_max_donor_dft',	'free_ligand_homo_energy_dft',
-                           'free_ligand_lumo_energy_dft', 'free_ligand_homo_lumo_gap_dft', 'free_ligand_hardness_dft',
-                           'free_ligand_softness_dft', 'free_ligand_electronegativity_dft',
-                           'free_ligand_electrophilicity_dft']
+free_ligand_params = ['free_ligand_dipole_moment_dft', 'free_ligand_lone_pair_occupancy_min_donor_dft',
+                      'free_ligand_lone_pair_occupancy_max_donor_dft',
+                      'free_ligand_dispersion_energy_dft', 'free_ligand_nbo_charge_min_donor_dft',
+                      'free_ligand_nbo_charge_max_donor_dft', 'free_ligand_mulliken_charge_min_donor_dft',
+                      'free_ligand_mulliken_charge_max_donor_dft', 'free_ligand_homo_energy_dft',
+                      'free_ligand_lumo_energy_dft', 'free_ligand_homo_lumo_gap_dft', 'free_ligand_hardness_dft',
+                      'free_ligand_softness_dft', 'free_ligand_electronegativity_dft',
+                      'free_ligand_electrophilicity_dft']
 all_electronic_and_thermodynamic_params = ['distance_pi_bond_1', 'distance_pi_bond_2', 'dispersion_p_int_Rh_gfn2_xtb',
                                            'dispersion_p_int_donor_max_gfn2_xtb',
                                            'dispersion_p_int_donor_min_gfn2_xtb', 'ip_gfn2_xtb',
@@ -69,8 +70,8 @@ geometric_params_dft_nbd = ['bite_angle_sin', 'bite_angle_cos', 'cone_angle_sin'
 
 electronic_and_thermodynamic_params_dft_nbd = ['distance_pi_bond_1', 'distance_pi_bond_2',
                                                'sum_electronic_and_free_energy_dft', 'free_ligand_dipole_moment_dft',
-                                               'lone_pair_occupancy_min_donor_dft',
-                                               'lone_pair_occupancy_max_donor_dft', 'free_ligand_dispersion_energy_dft',
+                                               'free_ligand_lone_pair_occupancy_min_donor_dft',
+                                               'free_ligand_lone_pair_occupancy_max_donor_dft', 'free_ligand_dispersion_energy_dft',
                                                'nbo_charge_Rh_dft', 'nbo_charge_min_donor_dft',
                                                'nbo_charge_max_donor_dft', 'free_ligand_homo_lumo_gap_dft']
 DFT_NBD_MODEL = steric_params_dft_nbd + geometric_params_dft_nbd + electronic_and_thermodynamic_params_dft_nbd
