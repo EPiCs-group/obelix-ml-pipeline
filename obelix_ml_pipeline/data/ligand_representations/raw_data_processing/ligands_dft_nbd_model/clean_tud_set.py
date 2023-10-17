@@ -55,6 +55,21 @@ def preprocess_tud_dft_descriptors(df):
     # df['cone_angle_rad'] = np.radians(df['cone_angle'])
     # df['cone_angle_sin'] = np.sin(df['cone_angle_rad']) / 2 + 0.5
     # df['cone_angle_cos'] = np.cos(df['cone_angle_rad']) / 2 + 0.5
+
+    # calculate the absolute difference between free_ligand_nbo_charge_max_donor_dft and nbo_charge_max_donor_dft
+    df['nbo_charge_max_donor_dft_abs_diff'] = abs(df['free_ligand_nbo_charge_max_donor_dft'] - df['nbo_charge_max_donor_dft'])
+    # calculate the absolute difference between free_ligand_nbo_charge_min_donor_dft and nbo_charge_min_donor_dft
+    df['nbo_charge_min_donor_dft_abs_diff'] = abs(df['free_ligand_nbo_charge_min_donor_dft'] - df['nbo_charge_min_donor_dft'])
+
+    # calculate the absolute difference between free_ligand_mulliken_charge_max_donor_dft and mulliken_charge_max_donor_dft
+    df['mulliken_charge_max_donor_dft_abs_diff'] = abs(df['free_ligand_mulliken_charge_max_donor_dft'] - df['mulliken_charge_max_donor_dft'])
+    # calculate the absolute difference between free_ligand_mulliken_charge_min_donor_dft and mulliken_charge_min_donor_dft
+    df['mulliken_charge_min_donor_dft_abs_diff'] = abs(df['free_ligand_mulliken_charge_min_donor_dft'] - df['mulliken_charge_min_donor_dft'])
+
+    # calculate the absolute difference between free_ligand_lone_pair_occupancy_max_donor_dft and lone_pair_occupancy_max_donor_dft
+    df['lone_pair_occupancy_max_donor_dft_abs_diff'] = abs(df['free_ligand_lone_pair_occupancy_max_donor_dft'] - df['lone_pair_occupancy_max_donor_dft'])
+    # calculate the absolute difference between free_ligand_lone_pair_occupancy_min_donor_dft and lone_pair_occupancy_min_donor_dft
+    df['lone_pair_occupancy_min_donor_dft_abs_diff'] = abs(df['free_ligand_lone_pair_occupancy_min_donor_dft'] - df['lone_pair_occupancy_min_donor_dft'])
     return df
 
 

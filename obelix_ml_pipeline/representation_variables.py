@@ -52,7 +52,10 @@ all_electronic_and_thermodynamic_params = ['distance_pi_bond_1', 'distance_pi_bo
                                            'homo_energy_dft', 'lumo_energy_dft', 'homo_lumo_gap_dft',
                                            'hardness_dft', 'softness_dft', 'electronegativity_dft',
                                            'electrophilicity_dft', 'min_NBO_donor', 'max_NBO_donor',
-                                           'lone_pair_occ_min', 'lone_pair_occ_max'] + free_ligand_params
+                                           'lone_pair_occ_min', 'lone_pair_occ_max', 'nbo_charge_max_donor_dft_abs_diff',
+                                           'nbo_charge_min_donor_dft_abs_diff',	'mulliken_charge_max_donor_dft_abs_diff',
+                                           'mulliken_charge_min_donor_dft_abs_diff', 'lone_pair_occupancy_max_donor_dft_abs_diff',
+                                           'lone_pair_occupancy_min_donor_dft_abs_diff'] + free_ligand_params
 all_descriptors = all_steric_params + all_geometric_params + all_electronic_and_thermodynamic_params
 
 # selected DFT NBD model descriptors for ML based on correlations
@@ -72,8 +75,10 @@ electronic_and_thermodynamic_params_dft_nbd = ['distance_pi_bond_1', 'distance_p
                                                'sum_electronic_and_free_energy_dft', 'free_ligand_dipole_moment_dft',
                                                'free_ligand_lone_pair_occupancy_min_donor_dft',
                                                'free_ligand_lone_pair_occupancy_max_donor_dft', 'free_ligand_dispersion_energy_dft',
-                                               'nbo_charge_Rh_dft', 'nbo_charge_min_donor_dft',
-                                               'nbo_charge_max_donor_dft', 'free_ligand_homo_lumo_gap_dft']
+                                               'nbo_charge_Rh_dft', 'free_ligand_nbo_charge_min_donor_dft',
+                                               'free_ligand_nbo_charge_max_donor_dft', 'free_ligand_homo_lumo_gap_dft',
+                                               'lone_pair_occupancy_max_donor_dft_abs_diff',
+                                               'lone_pair_occupancy_min_donor_dft_abs_diff']
 DFT_NBD_MODEL = steric_params_dft_nbd + geometric_params_dft_nbd + electronic_and_thermodynamic_params_dft_nbd
 # DFT_NBD_MODEL = descriptor_selection_test_scientist_1
 
