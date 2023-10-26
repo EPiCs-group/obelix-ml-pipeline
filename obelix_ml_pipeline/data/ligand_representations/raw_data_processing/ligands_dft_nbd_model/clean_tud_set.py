@@ -103,11 +103,11 @@ def preprocess_free_ligand_descriptors(df):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('clean_Rh_ligand_NBD_DFT_descriptors_v8.csv')
+    df = pd.read_csv('clean_Rh_ligand_NBD_DFT_descriptors_v9.csv')
     df = apply_preprocessing(df)
     free_ligand_df = pd.read_csv('free_ligand_descriptors_v3.csv')
     free_ligand_df = preprocess_free_ligand_descriptors(free_ligand_df)
     # merge ../ligands_dft_nbd_model.csv and free_ligand_descriptors_v1.csv on Ligand# column
     df = df.merge(free_ligand_df, on='Ligand#')
     df = preprocess_tud_dft_descriptors(df)  # process the descriptors to create additional representations of the data
-    df.to_csv('../ligands_dft_nbd_model.csv', index=False)
+    df.to_csv('ligands_dft_nbd_model.csv', index=False)

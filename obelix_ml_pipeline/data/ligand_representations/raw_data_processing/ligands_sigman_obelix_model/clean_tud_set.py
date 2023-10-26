@@ -103,7 +103,7 @@ def preprocess_free_ligand_descriptors(df):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('sigman_complex_obelix_descriptors.csv')
+    df = pd.read_csv('sigman_complex_obelix_descriptors_v2.csv')
     df = apply_preprocessing(df)
     free_ligand_df = pd.read_csv('sigman_free_ligand_obelix_descriptors.csv')
     free_ligand_df = preprocess_free_ligand_descriptors(free_ligand_df)
