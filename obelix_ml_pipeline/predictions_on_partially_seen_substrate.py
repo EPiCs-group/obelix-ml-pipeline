@@ -18,12 +18,12 @@ from obelix_ml_pipeline.data_classes import PredictionResults
 def predict_partially_seen_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
                                     list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
-                                    reduce_train_test_data_dimensionality=False, transformer=None):
+                                    reduce_train_test_data_dimensionality=False, transformer=None, seed_datasplit=42):
     df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations,
                                              ligand_numbers_column, substrate_names_column, target, plot_dendrograms)
 
     subset_data = df.loc[df[substrate_names_column] == subset_substrate]
-    subset_train, subset_test = train_test_split(subset_data, test_size=1-subset_size, random_state=42)
+    subset_train, subset_test = train_test_split(subset_data, test_size=1-subset_size, random_state=seed_datasplit)
 
     train_data = pd.concat([df.loc[df[substrate_names_column] == s] for s in list_of_training_substrates] + [subset_train])
     test_data = subset_test

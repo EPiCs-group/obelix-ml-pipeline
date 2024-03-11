@@ -5,7 +5,7 @@
 #  __contact__ = a.v.kalikadien@tudelft.nl            #
 
 # available ligand and substrate representations
-AVAILABLE_LIGAND_REPRESENTATION_TYPES = ['dft_nbd_model', 'dft_nbd_model_with_solvation', 'ecfp', 'ohe']
+AVAILABLE_LIGAND_REPRESENTATION_TYPES = ['dft_nbd_model', 'ecfp', 'ohe']
 AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES = ['dft_steric_fingerprint', 'smiles_steric_fingerprint', 'ecfp', 'ohe']
 
 # selected features for ligand representations

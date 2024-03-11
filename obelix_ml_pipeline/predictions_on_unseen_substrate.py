@@ -18,6 +18,19 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
                                     list_of_training_substrates, list_of_test_substrates, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
                                     reduce_train_test_data_dimensionality=False, transformer=None):
     df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, plot_dendrograms)
+    # Testing whether our definition of extremes actually affected our results by using winsorize or shifting the values
+    # wincorsize the target column such that the extreme values are not too extreme
+    # from sklearn.preprocessing import RobustScaler
+    # scaler = RobustScaler()
+    # df[target] = scaler.fit_transform(df[target].values.reshape(-1, 1))
+    # from scipy.stats.mstats import winsorize
+    # df[target] = winsorize(df[target], limits=[0.05, 0.05])
+
+    # if -15 or 15 in df[target] replace them with a value close to -15 or 15
+    # import random
+    # random.seed(42)
+    # df.loc[df[target] == -14.8, target] = random.uniform(-15, 15)
+    # df.loc[df[target] == 14.8, target] = random.uniform(-15, 15)
 
     train_data = df.copy()
     train_data = train_data[train_data[substrate_names_column].isin(list_of_training_substrates)]
@@ -80,7 +93,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
 if __name__ == "__main__":
     from sklearn.decomposition import PCA
     # try classifier with loaded representations
-    selected_ligand_representations = ['dft_nbd_model_with_solvation']
+    selected_ligand_representations = ['dft_nbd_model']
     selected_substrate_representations = ['dft_steric_fingerprint']
     target = 'Conversion'
     target_threshold = 0.8
@@ -92,8 +105,8 @@ if __name__ == "__main__":
     plot_dendrograms = False
     substrate_names_column = 'Substrate'
     ligand_numbers_column = 'Ligand#'
-    list_of_training_substrates = ['SM1', 'SM2']
-    list_of_test_substrates = ['SM3']
+    list_of_training_substrates = ['SM1']
+    list_of_test_substrates = ['SM2']
     print_ml_results = True
     reduce_train_test_data_dimensionality = True
     transformer = PCA(n_components=0.95, random_state=42)
@@ -101,25 +114,25 @@ if __name__ == "__main__":
     print(f'Test size in training (based on K-fold): {1/train_splits}')
     # do the same with general function predict_out_of_sample_substrate
     # load all output in a class
-    prediction_results = predict_out_of_sample_substrate(
-        selected_ligand_representations, selected_substrate_representations, ligand_numbers_column,
-        substrate_names_column, target, target_threshold, train_splits, binary=binary,
-        list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
-        rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs,
-        plot_dendrograms=plot_dendrograms, reduce_train_test_data_dimensionality=reduce_train_test_data_dimensionality,
-        transformer=transformer)
-
-    # # try regression with loaded representations
-    # target = 'EE'
-    # target_threshold = 0.6
-    # rf_model = RandomForestRegressor(random_state=42)
-    # scoring = 'r2'
-    # binary = False
-    # print('Training and testing regression')
-    # print(f'Test size: {1/train_splits}')
     # prediction_results = predict_out_of_sample_substrate(
     #     selected_ligand_representations, selected_substrate_representations, ligand_numbers_column,
     #     substrate_names_column, target, target_threshold, train_splits, binary=binary,
     #     list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
-    #     rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs, plot_dendrograms=plot_dendrograms)
-    # prediction_results.testing_confusion_fig.show()
+    #     rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs,
+    #     plot_dendrograms=plot_dendrograms, reduce_train_test_data_dimensionality=reduce_train_test_data_dimensionality,
+    #     transformer=transformer)
+
+    # # try regression with loaded representations
+    target = 'DDG'
+    target_threshold = 0.6
+    rf_model = RandomForestRegressor(random_state=42)
+    scoring = 'r2'
+    binary = False
+    print('Training and testing regression')
+    print(f'Test size: {1/train_splits}')
+    prediction_results = predict_out_of_sample_substrate(
+        selected_ligand_representations, selected_substrate_representations, ligand_numbers_column,
+        substrate_names_column, target, target_threshold, train_splits, binary=binary,
+        list_of_training_substrates=list_of_training_substrates, list_of_test_substrates=list_of_test_substrates,
+        rf_model=rf_model, scoring=scoring, print_ml_results=print_ml_results, n_jobs=n_jobs, plot_dendrograms=plot_dendrograms)
+    prediction_results.testing_confusion_fig.show()
