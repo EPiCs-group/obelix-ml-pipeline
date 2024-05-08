@@ -116,6 +116,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
                 best_training_test_scores_mean = training_test_scores_mean
                 best_training_test_scores_std = training_test_scores_std
                 best_training_best_model_performance = training_best_model_performance
+                best_target_threshold = target_threshold
                 best_fig_cm = fig_cm
                 best_fig_fi = fig_fi
                 best_df_fi = df_fi
@@ -129,7 +130,7 @@ def predict_within_substrate_class_for_random_subset(selected_ligand_representat
 
         randomly_chosen_fraction -= 0.1
     prediction_results = PredictionResults(best_best_model, best_training_best_model_performance, best_training_test_scores_mean,
-                                             best_training_test_scores_std, best_fig_cm, best_fig_fi, best_df_fi, best_testing_performance_test,
+                                             best_training_test_scores_std, best_target_threshold, best_fig_cm, best_fig_fi, best_df_fi, best_testing_performance_test,
                                                 best_testing_confusion_fig, best_testing_cm_test, best_train_data, best_test_data, best_random_seed, best_randomly_chosen_fraction)
     return prediction_results
 

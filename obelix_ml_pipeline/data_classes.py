@@ -16,6 +16,7 @@ class PredictionResults:
     training_best_model_performance: float
     training_test_scores_mean: float
     training_test_scores_std: float
+    target_threshold: float
     fig_cm: object
     fig_fi: object
     df_fi: pd.DataFrame

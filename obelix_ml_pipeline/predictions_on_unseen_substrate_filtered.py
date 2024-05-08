@@ -80,7 +80,7 @@ def predict_out_of_sample_substrate(selected_ligand_representations, selected_su
     # print(f'Y-scrambling results on training data: {significances}')
 
     # load results in a class
-    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
+    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, target_threshold, fig_cm, fig_fi, df_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
 
     return prediction_results
 

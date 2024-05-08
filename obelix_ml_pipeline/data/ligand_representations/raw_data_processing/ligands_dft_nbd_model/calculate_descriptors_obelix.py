@@ -44,7 +44,7 @@ ligand_number_list = [f'L{i}' for i in range(1, 193)]
 dictionary_for_properties = {}
 # read excel file with min/max numbering from complex
 complex_descriptors_df = pd.read_excel(
-    r"obelix-ml-pipeline\obelix_ml_pipeline\data\ligand_representations\raw_data_processing\ligands_dft_nbd_model\clean_Rh_ligand_NBD_DFT_descriptors_v3.xlsx",
+    r"obelix-ml-pipeline\obelix_ml_pipeline\data\ligand_representations\raw_data_processing\ligands_dft_nbd_model\clean_Rh_ligand_NBD_DFT_descriptors_v9.xlsx",
     sheet_name="Sheet1")
 
 for ligand_number in ligand_number_list:
