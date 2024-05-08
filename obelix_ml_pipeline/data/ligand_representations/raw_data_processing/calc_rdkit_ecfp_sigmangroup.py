@@ -3,9 +3,45 @@ import rdkit
 from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors
 from morfeus import Sterimol, read_xyz
-from rdkit import RDLogger
+# from rdkit import RDLogger
 import numpy as np
-RDLogger.DisableLog('rdApp.*')
+# RDLogger.DisableLog('rdApp.*')
+# RDLogger.EnableLog('rdApp.*')
+
+
+def calc_fps_descr_from_sdf(sdf_filename_list, name_list):
+    """Calculate RDKit Morgan Fingerprints from smiles list
+    and create a descriptor dataframe with names as index
+    :smiles_list: list of smiles
+    :name_list: list of names
+    :return: a dataframe with names & descriptors
+    """
+    dict_descr = dict()
+    for idx,smi in enumerate(sdf_filename_list):
+        try:
+            sdf_supplier = Chem.SDMolSupplier(f'nbd_dft_opt_structures/{smi}_NBD_DFT.sdf')
+            # each sdf file contains only one molecule
+            mol = sdf_supplier[0]
+            name = name_list[idx]
+            if mol:
+                #dd = descr.calc_mol(mol)
+                dd = np.array(AllChem.GetMorganFingerprintAsBitVect(mol, useChirality=True, radius=2, nBits=1024))
+                dict_descr[name] = dd
+            else:
+                print(f'Could not create mol from {smi}')
+        except Exception as e:
+            print(f'Could not read {smi}')
+            print(e)
+            continue
+    # make rdkit mols
+    descr_df = pd.DataFrame(dict_descr).T
+    # name columns to keep track of deleted bits
+    descr_df.columns = [f'fp{n}' for n in range(1024)]
+    descr_df = descr_df.reset_index(drop=False)
+    descr_df.rename(columns={'index':'Ligand#'}, inplace=True)
+    # remove constant columns
+    descr_df = descr_df.loc[:, (descr_df != descr_df.iloc[0]).any()]
+    return descr_df
 
 def calc_fps_descr(smiles_list, name_list):
     """Calculate RDKit Morgan Fingerprints from smiles list
@@ -117,11 +153,16 @@ class RDKitDescriptors:
         else:
             return None
 
-df = pd.read_csv('ligands_smiles.csv')
-df_ecfp = calc_fps_descr(df.SMILES.values, df.ID.values)
-df_rdkit = calc_rdkit_descr(df.SMILES.values, df.ID.values)
-df_sigman = calc_sigman_descr(df.ID.values)
-# write df to file
-df_ecfp.to_csv('../ligands_ecfp.csv', sep = ';', index=False)
-df_rdkit.to_csv('../ligands_rdkit.csv', sep = ';', index=False)
-df_sigman.to_csv('../ligands_sigmangroup.csv', sep = ';', index=False)
+
+if __name__ == "__main__":
+    df = pd.read_csv('ligands_smiles.csv')
+    df_ecfp = calc_fps_descr(df.SMILES.values, df.ID.values)
+    df_rdkit = calc_rdkit_descr(df.SMILES.values, df.ID.values)
+    df_sigman = calc_sigman_descr(df.ID.values)
+    # write df to file
+    df_ecfp.to_csv('../ligands_ecfp.csv', sep = ';', index=False)
+    df_rdkit.to_csv('../ligands_rdkit.csv', sep = ';', index=False)
+    df_sigman.to_csv('../ligands_sigmangroup.csv', sep = ';', index=False)
+    # calculate ecfp from sdf files
+    # df = pd.read_excel('ligands_dft_nbd_model/clean_Rh_ligand_NBD_DFT_descriptors_v3.xlsx', 'Sheet1')
+    # df_ecfp = calc_fps_descr_from_sdf(df['filename_tud'].values, df['Ligand#'].values)

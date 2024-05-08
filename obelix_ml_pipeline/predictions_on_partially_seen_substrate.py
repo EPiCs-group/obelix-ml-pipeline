@@ -10,58 +10,58 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
 
-from obelix_ml_pipeline.load_representations import select_features_for_representation, load_and_merge_representations_and_experimental_response
-from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model
+from obelix_ml_pipeline.load_representations import prepare_selected_representations_df
+from obelix_ml_pipeline.machine_learning import prepare_classification_df, train_ml_model, predict_ml_model, reduce_dimensionality_train_test
 from obelix_ml_pipeline.data_classes import PredictionResults
 
 
 def predict_partially_seen_substrate(selected_ligand_representations, selected_substrate_representations,
                                     ligand_numbers_column, substrate_names_column, target, target_threshold, train_splits, binary,
-                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False):
-    ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
-                       selected_ligand_representations]
-    # flatten list of lists
-    ligand_features = [item for sublist in ligand_features for item in sublist]
-    substrate_features = [select_features_for_representation(representation_type, ligand=False) for representation_type
-                          in selected_substrate_representations]
-    # flatten list of lists
-    substrate_features = [item for sublist in substrate_features for item in sublist]
-    # print(substrate_features)
-    features = ligand_features + substrate_features
-
-    # load selected representations and experimental response
-    df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
-                                                                  selected_substrate_representations, plot_dendrograms)
-    # for the dataframe we want the ligand number, substrate name, target and ligand/substrate features
-    df = df[[ligand_numbers_column, substrate_names_column, target] + features]
-    if 'accuracy' in scoring:  # this means that we are doing a classification task
-        df = prepare_classification_df(df, target, target_threshold, binary)
+                                    list_of_training_substrates, subset_substrate, subset_size, rf_model, scoring, print_ml_results, n_jobs, plot_dendrograms=False,
+                                    reduce_train_test_data_dimensionality=False, transformer=None, seed_datasplit=42):
+    df = prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations,
+                                             ligand_numbers_column, substrate_names_column, target, plot_dendrograms)
 
     subset_data = df.loc[df[substrate_names_column] == subset_substrate]
-    subset_train, subset_test = train_test_split(subset_data, test_size=1-subset_size, random_state=42)
+    subset_train, subset_test = train_test_split(subset_data, test_size=1-subset_size, random_state=seed_datasplit)
+
     train_data = pd.concat([df.loc[df[substrate_names_column] == s] for s in list_of_training_substrates] + [subset_train])
-    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi = train_ml_model(
+    test_data = subset_test
+
+    # in case of a binary classification task we need to transform the target column to a binary column
+    if 'accuracy' in scoring:  # this means that we are doing a classification task
+        if target_threshold is None:
+            target_threshold = train_data[target].median()
+            print(f'No target threshold provided, using median of target column in training data as threshold: {target_threshold}')
+        train_data = prepare_classification_df(train_data, target, target_threshold, binary)
+        test_data = prepare_classification_df(test_data, target, target_threshold, binary)
+
+    # reduce dimensionality of train and test data
+    if reduce_train_test_data_dimensionality and transformer is not None:
+        scaler, transformer, train_data, test_data = reduce_dimensionality_train_test(train_data, test_data, target, ligand_numbers_column, substrate_names_column, transformer)
+    
+    
+    best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, df_fi, train_data = train_ml_model(
         train_data, ligand_numbers_column, substrate_names_column,
         target,
         rf_model=rf_model, cv=train_splits, scoring=scoring, n_jobs=n_jobs,
         print_results=print_ml_results)
 
     # # test model on test set
-    test_data = subset_test
-    testing_performance_test, testing_confusion_fig, testing_cm_test = predict_ml_model(test_data,
+    testing_performance_test, testing_confusion_fig, testing_cm_test, test_data = predict_ml_model(test_data,
                                                                                         ligand_numbers_column,
                                                                                         substrate_names_column, target,
                                                                                         best_model, scoring=scoring,
                                                                                         print_results=print_ml_results)
 
-    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, testing_performance_test, testing_confusion_fig, testing_cm_test)
+    prediction_results = PredictionResults(best_model, training_best_model_performance, training_test_scores_mean, training_test_scores_std, target_thresholdr, fig_cm, fig_fi, df_fi, testing_performance_test, testing_confusion_fig, testing_cm_test, train_data, test_data)
     return prediction_results
 
 
 if __name__ == '__main__':
     # try classifier with loaded representations
     selected_ligand_representations = ['dft_nbd_model']
-    selected_substrate_representations = ['ecfp']
+    selected_substrate_representations = ['dft_steric_fingerprint']
     target = 'Conversion'
     target_threshold = 0.8
     rf_model = RandomForestClassifier(random_state=42)

@@ -72,18 +72,25 @@ def train_ml_model(train_data, ligand_numbers_column, substrate_names_column, ta
 
     if print_results:
         print('Mean test performance: {:.2f} +/- {:.2f}'.format(training_test_scores_mean, training_test_scores_std))
-        print('Best model performance: {:.2f}'.format(best_model_performance))
-        print('Best model parameters: {}'.format(grid_search.best_params_))
+        print('Best training model performance: {:.2f}'.format(best_model_performance))
+        print('Best training model parameters: {}'.format(grid_search.best_params_))
 
     # figure for the feature importance of the best model interactively with plotly sorted by importance
     feature_importances = pd.DataFrame(best_model.feature_importances_, index=X.columns,
                                        columns=['importance']).sort_values('importance', ascending=False)
-    fig_fi = px.bar(feature_importances, x=feature_importances.index, y='importance',
+    # add standard deviation of feature importances across folds
+    feature_importances['std'] = np.std([tree.feature_importances_ for tree in best_model.estimators_], axis=0)
+    # ToDo: color bars based on whether they are substrate or ligand descriptor
+    # check if X.column is in ligand or substrate descriptors for selected representations
+    # give the column a color based on that (using color_discrete_map variable in px.bar)
+    fig_fi = px.bar(feature_importances, x=feature_importances.index, y='importance', error_y='std',
                     title='Feature importance of the best RF model')
     fig_fi.update_xaxes(title_text='Feature')
     fig_fi.update_yaxes(title_text='Importance')
 
-    return best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi
+    # add predictions to the training data before returning it (for plotting purposes)
+    train_data['predictions'] = predictions
+    return best_model, best_model_performance, training_test_scores_mean, training_test_scores_std, fig_cm, fig_fi, feature_importances, train_data
 
 
 def predict_ml_model(test_data, ligand_numbers_column, substrate_names_column, target, model, scoring, print_results):
@@ -121,8 +128,9 @@ def predict_ml_model(test_data, ligand_numbers_column, substrate_names_column, t
         ax.set_xlabel('True values')
         ax.set_ylabel('Predicted values')
         ax.set_title('True vs predicted values of the target for the test set')
-
-    return performance, fig_cm, cm
+    # add predictions to the test data before returning it (for plotting purposes)
+    test_data['predictions'] = y_pred
+    return performance, fig_cm, cm, test_data
 
 
 # function for preparing data for either binary or multiclass classification
@@ -143,6 +151,27 @@ def prepare_classification_df(df, target, threshold, binary=True):
         pass
 
     return df
+
+
+# function to filter ligands which are all either active or inactive in the training set
+# check for all available ligands if they have the same value across multiple substrates
+# this can be done by a groupby on the ligand number and then checking if the target column is equal to the number of substrates or 0
+# if this is the case, then the ligand is either all active or all inactive
+def filter_ligands_with_only_one_class(df, target, threshold, binary, ligand_numbers_column, list_of_substrates, print_results=True):
+    df = df.copy()
+    if threshold is None:
+        threshold = df[target].median()
+        print('No threshold was given, using the median of the target column as threshold (for filtering): ', threshold)
+    df = prepare_classification_df(df, target, threshold, binary)
+    df = df.groupby([ligand_numbers_column]).sum()
+    # only keep ligands for which the sum of target column is not equal to number of substrates or 0
+    df = df[~((df[target].astype(int) == len(list_of_substrates)) | (df[target].astype(int) == 0))]
+    # df = df[(df[target] != len(list_of_substrates)) | (df[target] != 0)]
+    # add ligand numbers column back to the dataframe
+    df = df.reset_index()
+    if print_results:
+        print(f'Number of ligands removed from training data for being active/inactive across all training substrates: {len(df[ligand_numbers_column])}')
+    return df[ligand_numbers_column]
 
 
 # function for fitting standard scaler to the training data and performing PCA or spectral embedding

@@ -8,6 +8,37 @@ import pandas as pd
 from obelix_ml_pipeline.representation_variables import AVAILABLE_LIGAND_REPRESENTATION_TYPES, AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES
 from obelix_ml_pipeline.utilities import load_csv_or_excel_file_to_df, merge_dfs, plot_dendrogram_for_substrate_rep
 from obelix_ml_pipeline.representation_variables import AVAILABLE_LIGAND_REPRESENTATION_TYPES, AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES, DFT_NBD_MODEL, STERIMOL
+from obelix_ml_pipeline.machine_learning import prepare_classification_df
+
+
+def prepare_selected_representations_df(selected_ligand_representations, selected_substrate_representations, ligand_numbers_column, substrate_names_column, target, plot_dendrograms=False):
+    ligand_features = [select_features_for_representation(representation_type, ligand=True) for representation_type in
+                       selected_ligand_representations]
+    # flatten list of lists
+    ligand_features = [item for sublist in ligand_features for item in sublist]
+    substrate_features = [select_features_for_representation(representation_type, ligand=False) for representation_type
+                          in selected_substrate_representations]
+    # flatten list of lists
+    substrate_features = [item for sublist in substrate_features for item in sublist]
+    # print(substrate_features)
+    features = ligand_features + substrate_features
+
+    # load selected representations and experimental response
+    df = load_and_merge_representations_and_experimental_response(selected_ligand_representations,
+                                                                  selected_substrate_representations, plot_dendrograms)
+    # for the dataframe we want the ligand number, substrate name, target and ligand/substrate features
+    df = df[[ligand_numbers_column, substrate_names_column, target] + features]
+    # if 'accuracy' in scoring:  # this means that we are doing a classification task
+    #     df = prepare_classification_df(df, target, target_threshold, binary)
+
+    # if a row contains a NaN value, drop it and print a warning + Ligand# of dropped row
+    if df.isnull().values.any():
+        print('WARNING: NaN values detected in dataframe, dropping rows with NaN values')
+        df = df.dropna(axis=0, how='any')
+        print('Ligand# of dropped rows:')
+        print(df[df.isnull().any(axis=1)][ligand_numbers_column].values)
+
+    return df
 
 
 def load_and_merge_representations_and_experimental_response(selected_ligand_representations, selected_substrate_representations, plot_dendrograms=False):
@@ -85,6 +116,13 @@ def load_ligand_representations(representation_type, columns_of_representation_t
             ligand_df = ligand_df[columns_of_representation_to_select]
         except KeyError:
             raise KeyError(f'Columns {columns_of_representation_to_select} not available in representation type {representation_type}')
+    # if a column contains any Nan values, drop the column and print the column name
+    if ligand_df.isnull().any().any():
+        print(f'Ligand# of columns with Nan values: {ligand_df.columns[ligand_df.isnull().any()].tolist()}')
+        # print Ligand# columns with Nan values in these columns
+        print(f'Ligand# of rows with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]["Ligand#"]}')
+        # print(f'Columns with Nan values: {ligand_df[ligand_df.isnull().any(axis=1)]}')
+        ligand_df = ligand_df.dropna(axis=1)
     return ligand_df
 
 
@@ -105,7 +143,7 @@ def load_substrate_representations(representation_type, columns_of_representatio
 
 # load experimental data
 def load_experimental_response():
-    path_to_experimental_response = os.path.join(os.path.dirname(__file__), 'data', 'experimental_response', 'jnjdata_sm12378_MeOH_16h.csv')
+    path_to_experimental_response = os.path.join(os.path.dirname(__file__), 'data', 'experimental_response', 'jnjdata_sm12378_MeOH.csv')
     experimental_response_df = load_csv_or_excel_file_to_df(path_to_experimental_response)
     return experimental_response_df
 
@@ -119,18 +157,18 @@ def load_representation_and_return_all_columns_except_index(load_function, repre
 def select_features_for_representation(representation_type, ligand: bool):
     if representation_type in AVAILABLE_LIGAND_REPRESENTATION_TYPES and ligand:
         # these representations are loaded from representation_variables.py
-        if representation_type in ['dft_nbd_model','dft_nbd_model_fairsubset']:
+        if representation_type in ['dft_nbd_model']:
             return DFT_NBD_MODEL
         # these representations are always the same, so automatically determined
-        if representation_type in ['ecfp', 'dl_chylon', 'sigmangroup', 'ecfp_fairsubset', 'dl_chylon_fairsubset', 'sigmangroup_fairsubset']:
+        if representation_type in ['ecfp', 'ohe']:
             return load_representation_and_return_all_columns_except_index(load_ligand_representations, representation_type)
         return None
     elif representation_type in AVAILABLE_SUBSTRATE_REPRESENTATION_TYPES and not ligand:
         # these representations are loaded from representation_variables.py
-        if representation_type == 'sterimol':
-            return STERIMOL
+        # if representation_type == 'sterimol':
+        #     return STERIMOL
         # these representations are always the same, so automatically determined
-        if representation_type in ['smiles_steric_fingerprint', 'dft_steric_fingerprint', 'dl_chylon', 'ecfp', 'rdkit','ohe']:
+        if representation_type in ['smiles_steric_fingerprint', 'dft_steric_fingerprint', 'ecfp', 'ohe']:
             return load_representation_and_return_all_columns_except_index(load_substrate_representations, representation_type)
         return None
     else:
@@ -150,6 +188,6 @@ def get_number_of_features_for_representation(representation_type, ligand: bool)
 if __name__ == "__main__":
     # test loading of data
     selected_ligand_representations = ['dft_nbd_model']
-    selected_substrate_representations = ['sterimol']
+    selected_substrate_representations = ['smiles_steric_fingerprint']
     df = load_and_merge_representations_and_experimental_response(selected_ligand_representations, selected_substrate_representations)
     print(df.groupby('Substrate').count())
