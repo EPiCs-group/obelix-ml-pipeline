@@ -1,6 +1,5 @@
 # obelix-ml-pipeline
-This Github repo contains the ML pipeline used in the paper '...'. For the exact 'production' versions used to generate the
-figures in the paper, visit ...  
+This Github repo contains the ML pipeline used in the paper "Probing Machine Learning Models Based on High-Throughput Experimentation Data for the Discovery of Asymmetric Hydrogenation Catalysts".
 
 First, homogeneous catalyst structures are featurized using
 our [OBeLiX workflow](https://github.com/EPiCs-group/obelix). Various other representations are created for these structures
